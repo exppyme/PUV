@@ -1,943 +1,970 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Experiencia PyME - Evaluador de Propuesta de Valor & Zona VIP</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diagnóstico Avanzado de Propuesta de Valor</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Google Fonts Inter -->
+  <!-- React & ReactDOM CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <!-- Babel Standalone para JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Fuente Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  
-  <!-- Lucide Icons CDN -->
-  <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
     body {
       font-family: 'Inter', sans-serif;
     }
-    .rating-btn.active {
-      background-color: #2563eb;
-      color: #ffffff;
-      border-color: #2563eb;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn {
+      animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @media print {
+      .print\:hidden { display: none !important; }
+      .print\:bg-white { background-color: #ffffff !important; }
+      .print\:shadow-none { box-shadow: none !important; }
+      .print\:border-none { border: none !important; }
+      .print\:p-0 { padding: 0 !important; }
+      body { background: #fff !important; }
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-900 min-h-screen antialiased flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+  <div id="root" class="min-h-screen flex flex-col justify-between"></div>
 
-  <!-- Header / Navegación principal -->
-  <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-      <div class="flex items-center space-x-3">
-        <div class="bg-blue-600 p-2.5 rounded-xl text-white font-black text-xl shadow-md">
-          EP
-        </div>
-        <div>
-          <h1 class="text-xl font-bold tracking-tight">Experiencia PyME</h1>
-          <p class="text-xs text-slate-400">Escáner del Modelo de Negocio (BMC)</p>
-        </div>
-      </div>
+  <script type="text/babel">
+    // Componentes de Íconos SVG embebidos
+    const IconWrapper = ({ children, className = "w-5 h-5" }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        {children}
+      </svg>
+    );
 
-      <!-- Menú de Pestañas -->
-      <nav class="flex flex-wrap justify-center space-x-1 sm:space-x-2 bg-slate-800 p-1.5 rounded-xl border border-slate-700">
-        <button
-          onclick="switchTab('assessment')"
-          id="btn-tab-assessment"
-          class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all flex items-center gap-2 bg-blue-600 text-white shadow cursor-pointer"
-        >
-          <i data-lucide="file-text" class="w-4 h-4"></i>
-          <span>Diagnóstico</span>
-        </button>
+    const ChevronRight = (p) => <IconWrapper {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></IconWrapper>;
+    const ChevronLeft = (p) => <IconWrapper {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></IconWrapper>;
+    const CheckCircle = (p) => <IconWrapper {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></IconWrapper>;
+    const Award = (p) => <IconWrapper {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15l-2 5l3-2l3 2l-2-5M12 15a7 7 0 100-14 7 7 0 000 14z" /></IconWrapper>;
+    const Download = (p) => <IconWrapper {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></IconWrapper>;
+    const Lock = (p) => <IconWrapper {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></IconWrapper>;
+    const Sparkles = (p) => <IconWrapper {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></IconWrapper>;
+    const Target = (p) => <IconWrapper {...p}><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></IconWrapper>;
+    const RefreshCw = (p) => <IconWrapper {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></IconWrapper>;
+    const LogOut = (p) => <IconWrapper {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></IconWrapper>;
+    const BarChart = (p) => <IconWrapper {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></IconWrapper>;
+    const Lightbulb = (p) => <IconWrapper {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 01-2 2h-0a2 2 0 01-2-2v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></IconWrapper>;
+    const Users = (p) => <IconWrapper {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></IconWrapper>;
 
-        <button
-          onclick="switchTab('results')"
-          id="btn-tab-results"
-          class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer"
-        >
-          <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
-          <span>Mi Reporte</span>
-        </button>
+    const GOOGLE_SHEETS_WEBHOOK_URL = ""; 
 
-        <button
-          onclick="switchTab('vip')"
-          id="btn-tab-vip"
-          class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all flex items-center gap-2 text-amber-400 hover:bg-slate-700 cursor-pointer"
-        >
-          <i data-lucide="zap" class="w-4 h-4 fill-current"></i>
-          <span>Zona VIP</span>
-        </button>
-
-        <button
-          onclick="switchTab('responses')"
-          id="btn-tab-responses"
-          class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all flex items-center gap-2 text-emerald-400 hover:bg-slate-700 cursor-pointer"
-        >
-          <i data-lucide="database" class="w-4 h-4"></i>
-          <span>Planilla / Respuestas (<span id="nav-count">2</span>)</span>
-        </button>
-      </nav>
-    </div>
-  </header>
-
-  <!-- Banner Hero -->
-  <div class="bg-gradient-to-r from-blue-900 via-slate-800 to-indigo-900 text-white py-8 px-4 border-b border-slate-700 shadow-inner">
-    <div class="max-w-4xl mx-auto text-center space-y-3">
-      <span class="inline-block bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-semibold px-3.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
-        Webinar Exclusivo: Propuesta de Valor & BMC
-      </span>
-      <h2 class="text-2xl md:text-4xl font-black tracking-tight">
-        Mide el Nivel de Desarrollo de tu Propuesta de Valor
-      </h2>
-      <p class="text-slate-300 text-sm md:text-base max-w-2xl mx-auto font-normal">
-        Utiliza este escáner analítico para evaluar la viabilidad de tu proyecto antes de desplegarlo en el mercado en su totalidad.
-      </p>
-    </div>
-  </div>
-
-  <!-- Contenedor Principal de Vistas -->
-  <main class="max-w-4xl mx-auto px-4 py-8 flex-1 w-full">
-
-    <!-- PESTAÑA 1: FORMULARIO DE EVALUACIÓN -->
-    <section id="tab-assessment" class="tab-content block">
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
-        <form id="assessment-form" onsubmit="handleFormSubmit(event)" class="space-y-8">
-          
-          <!-- Datos del Participante -->
-          <div>
-            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2 mb-4 pb-2 border-b border-slate-100">
-              <i data-lucide="user" class="w-5 h-5 text-blue-600"></i>
-              1. Información del Participante
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Nombre Completo *</label>
-                <input
-                  type="text"
-                  id="input-nombre"
-                  required
-                  placeholder="Ej: Juan Pérez"
-                  class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
-                />
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Correo Electrónico *</label>
-                <input
-                  type="email"
-                  id="input-email"
-                  required
-                  placeholder="juan@ejemplo.com"
-                  class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
-                />
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Teléfono / WhatsApp</label>
-                <input
-                  type="tel"
-                  id="input-telefono"
-                  placeholder="+54 9 11 ..."
-                  class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
-                />
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Empresa / Emprendimiento</label>
-                <input
-                  type="text"
-                  id="input-empresa"
-                  placeholder="Nombre de tu proyecto"
-                  class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
-                />
-              </div>
-            </div>
-          </div>
-
-          <!-- CRITERIO 1 -->
-          <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
-            <div class="flex items-start gap-3">
-              <span class="bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-lg text-xs uppercase">Criterio 1</span>
-              <div>
-                <h4 class="font-bold text-slate-900 text-sm md:text-base">Alivio de Dolores y Solución</h4>
-                <p class="text-xs text-slate-500">Evalúa qué tan crítico es el problema que se resuelve y la claridad de la razón de compra.</p>
-              </div>
-            </div>
-
-            <div class="space-y-4 pt-2">
-              <div>
-                <label class="block text-xs md:text-sm font-medium text-slate-800 mb-2">
-                  ¿Qué tan crítico o doloroso es el problema que tu producto/servicio resuelve? (1: Leve / 5: Crítico)
-                </label>
-                <div class="grid grid-cols-5 gap-2">
-                  <button type="button" onclick="selectRating('c1_q1', 1)" class="rating-btn c1_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">1</button>
-                  <button type="button" onclick="selectRating('c1_q1', 2)" class="rating-btn c1_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">2</button>
-                  <button type="button" onclick="selectRating('c1_q1', 3)" class="rating-btn c1_q1 active py-2 border rounded-lg text-sm font-bold bg-blue-600 text-white border-blue-600 cursor-pointer">3</button>
-                  <button type="button" onclick="selectRating('c1_q1', 4)" class="rating-btn c1_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">4</button>
-                  <button type="button" onclick="selectRating('c1_q1', 5)" class="rating-btn c1_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">5</button>
-                </div>
-              </div>
-
-              <div>
-                <label class="block text-xs md:text-sm font-medium text-slate-800 mb-2">
-                  ¿El cliente entiende de forma inmediata la razón principal para comprarte a ti? (1: Confuso / 5: Clarísimo)
-                </label>
-                <div class="grid grid-cols-5 gap-2">
-                  <button type="button" onclick="selectRating('c1_q2', 1)" class="rating-btn c1_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">1</button>
-                  <button type="button" onclick="selectRating('c1_q2', 2)" class="rating-btn c1_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">2</button>
-                  <button type="button" onclick="selectRating('c1_q2', 3)" class="rating-btn c1_q2 active py-2 border rounded-lg text-sm font-bold bg-blue-600 text-white border-blue-600 cursor-pointer">3</button>
-                  <button type="button" onclick="selectRating('c1_q2', 4)" class="rating-btn c1_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">4</button>
-                  <button type="button" onclick="selectRating('c1_q2', 5)" class="rating-btn c1_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">5</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- CRITERIO 2 -->
-          <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
-            <div class="flex items-start gap-3">
-              <span class="bg-indigo-100 text-indigo-700 font-bold px-2.5 py-1 rounded-lg text-xs uppercase">Criterio 2</span>
-              <div>
-                <h4 class="font-bold text-slate-900 text-sm md:text-base">Nivel de Diferenciación</h4>
-                <p class="text-xs text-slate-500">Evalúa la singularidad percibida en el mercado y la capacidad de defenderse frente a competidores o precios.</p>
-              </div>
-            </div>
-
-            <div class="space-y-4 pt-2">
-              <div>
-                <label class="block text-xs md:text-sm font-medium text-slate-800 mb-2">
-                  ¿Qué tan fácil es para el mercado percibir tu propuesta como única y sin sustitutos directos? (1: Genérico / 5: Único)
-                </label>
-                <div class="grid grid-cols-5 gap-2">
-                  <button type="button" onclick="selectRating('c2_q1', 1)" class="rating-btn c2_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">1</button>
-                  <button type="button" onclick="selectRating('c2_q1', 2)" class="rating-btn c2_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">2</button>
-                  <button type="button" onclick="selectRating('c2_q1', 3)" class="rating-btn c2_q1 active py-2 border rounded-lg text-sm font-bold bg-blue-600 text-white border-blue-600 cursor-pointer">3</button>
-                  <button type="button" onclick="selectRating('c2_q1', 4)" class="rating-btn c2_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">4</button>
-                  <button type="button" onclick="selectRating('c2_q1', 5)" class="rating-btn c2_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">5</button>
-                </div>
-              </div>
-
-              <div>
-                <label class="block text-xs md:text-sm font-medium text-slate-800 mb-2">
-                  ¿Capacidad para sostener precios sin tener que competir con rebajas? (1: Baja / 5: Muy Alta)
-                </label>
-                <div class="grid grid-cols-5 gap-2">
-                  <button type="button" onclick="selectRating('c2_q2', 1)" class="rating-btn c2_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">1</button>
-                  <button type="button" onclick="selectRating('c2_q2', 2)" class="rating-btn c2_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">2</button>
-                  <button type="button" onclick="selectRating('c2_q2', 3)" class="rating-btn c2_q2 active py-2 border rounded-lg text-sm font-bold bg-blue-600 text-white border-blue-600 cursor-pointer">3</button>
-                  <button type="button" onclick="selectRating('c2_q2', 4)" class="rating-btn c2_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">4</button>
-                  <button type="button" onclick="selectRating('c2_q2', 5)" class="rating-btn c2_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">5</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- CRITERIO 3 -->
-          <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
-            <div class="flex items-start gap-3">
-              <span class="bg-purple-100 text-purple-700 font-bold px-2.5 py-1 rounded-lg text-xs uppercase">Criterio 3</span>
-              <div>
-                <h4 class="font-bold text-slate-900 text-sm md:text-base">Coherencia Oferta / Segmento</h4>
-                <p class="text-xs text-slate-500">Evalúa el grado de encaje (fit) entre la propuesta entregada y las necesidades de tu cliente ideal.</p>
-              </div>
-            </div>
-
-            <div class="space-y-4 pt-2">
-              <div>
-                <label class="block text-xs md:text-sm font-medium text-slate-800 mb-2">
-                  ¿Qué tan ajustados están tus canales de venta y comunicación con los hábitos de tu cliente? (1: Poco / 5: Perfectamente)
-                </label>
-                <div class="grid grid-cols-5 gap-2">
-                  <button type="button" onclick="selectRating('c3_q1', 1)" class="rating-btn c3_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">1</button>
-                  <button type="button" onclick="selectRating('c3_q1', 2)" class="rating-btn c3_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">2</button>
-                  <button type="button" onclick="selectRating('c3_q1', 3)" class="rating-btn c3_q1 active py-2 border rounded-lg text-sm font-bold bg-blue-600 text-white border-blue-600 cursor-pointer">3</button>
-                  <button type="button" onclick="selectRating('c3_q1', 4)" class="rating-btn c3_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">4</button>
-                  <button type="button" onclick="selectRating('c3_q1', 5)" class="rating-btn c3_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">5</button>
-                </div>
-              </div>
-
-              <div>
-                <label class="block text-xs md:text-sm font-medium text-slate-800 mb-2">
-                  ¿Cuentas con validación o clientes reales que hayan expresado alta satisfacción? (1: Ninguna / 5: Validado ampliamente)
-                </label>
-                <div class="grid grid-cols-5 gap-2">
-                  <button type="button" onclick="selectRating('c3_q2', 1)" class="rating-btn c3_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">1</button>
-                  <button type="button" onclick="selectRating('c3_q2', 2)" class="rating-btn c3_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">2</button>
-                  <button type="button" onclick="selectRating('c3_q2', 3)" class="rating-btn c3_q2 active py-2 border rounded-lg text-sm font-bold bg-blue-600 text-white border-blue-600 cursor-pointer">3</button>
-                  <button type="button" onclick="selectRating('c3_q2', 4)" class="rating-btn c3_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">4</button>
-                  <button type="button" onclick="selectRating('c3_q2', 5)" class="rating-btn c3_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">5</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Botón de Envío -->
-          <button
-            type="submit"
-            id="btn-submit"
-            class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-base md:text-lg rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <span>Obtener Mi Diagnóstico Express</span>
-            <i data-lucide="arrow-right" class="w-5 h-5"></i>
-          </button>
-
-          <p class="text-center text-xs text-slate-500">
-            Sus respuestas quedan registradas directamente en la planilla de datos vinculada a Experiencia PyME.
-          </p>
-        </form>
-      </div>
-    </section>
-
-    <!-- PESTAÑA 2: RESULTADOS Y DIAGNÓSTICO EXPRESS -->
-    <section id="tab-results" class="tab-content hidden space-y-6">
-      <div id="no-report-warning" class="bg-amber-50 border border-amber-200 text-amber-800 p-6 rounded-2xl text-center">
-        <i data-lucide="alert-circle" class="w-10 h-10 text-amber-600 mx-auto mb-2"></i>
-        <p class="font-bold">Aún no has completado tu diagnóstico</p>
-        <p class="text-xs text-amber-700 mt-1">Completa el formulario en la pestaña "Diagnóstico" para ver tu informe analítico aquí.</p>
-        <button onclick="switchTab('assessment')" class="mt-4 px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold text-xs cursor-pointer hover:bg-amber-700 transition">Ir al Formulario</button>
-      </div>
-
-      <div id="report-card" class="hidden space-y-6">
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
-          <div class="text-center pb-6 border-b border-slate-100">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Resultado del Escáner</span>
-            <h3 id="res-level" class="text-2xl font-black text-slate-900 mt-1">Calculando...</h3>
-            
-            <div class="mt-4 inline-flex items-center justify-center p-4 bg-slate-900 text-white rounded-2xl shadow-md">
-              <div class="text-center">
-                <span id="res-score" class="text-4xl font-extrabold text-blue-400">0</span>
-                <span class="text-slate-400 text-sm"> / 100 PTS</span>
-              </div>
-            </div>
-            <p id="res-summary" class="text-sm text-slate-600 max-w-lg mx-auto mt-4"></p>
-          </div>
-
-          <!-- Desglose por Criterio -->
-          <div class="py-6 border-b border-slate-100">
-            <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-4">Desglose de Factores Evaluados</h4>
-            <div class="space-y-4">
-              <div>
-                <div class="flex justify-between text-sm font-semibold text-slate-700 mb-1">
-                  <span>1. Alivio de Dolores y Solución</span>
-                  <span id="res-c1-val">0%</span>
-                </div>
-                <div class="w-full bg-slate-100 rounded-full h-2.5">
-                  <div id="res-c1-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-              </div>
-
-              <div>
-                <div class="flex justify-between text-sm font-semibold text-slate-700 mb-1">
-                  <span>2. Nivel de Diferenciación</span>
-                  <span id="res-c2-val">0%</span>
-                </div>
-                <div class="w-full bg-slate-100 rounded-full h-2.5">
-                  <div id="res-c2-bar" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-              </div>
-
-              <div>
-                <div class="flex justify-between text-sm font-semibold text-slate-700 mb-1">
-                  <span>3. Coherencia Oferta / Segmento</span>
-                  <span id="res-c3-val">0%</span>
-                </div>
-                <div class="w-full bg-slate-100 rounded-full h-2.5">
-                  <div id="res-c3-bar" class="bg-purple-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Recomendaciones Express -->
-          <div class="pt-6">
-            <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-3">Recomendaciones Mínimas Sugeridas</h4>
-            <ul id="res-recommendations" class="space-y-2">
-            </ul>
-          </div>
-        </div>
-
-        <!-- CALL TO ACTION A ZONA VIP -->
-        <div class="bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-slate-950 p-6 md:p-8 rounded-2xl shadow-xl relative overflow-hidden">
-          <div class="relative z-10 space-y-4">
-            <div class="inline-flex items-center gap-2 bg-slate-950 text-amber-400 text-xs font-bold px-3 py-1 rounded-full uppercase">
-              <i data-lucide="zap" class="w-3.5 h-3.5 fill-current"></i>
-              Recomendado para tu Proyecto
-            </div>
-            <h3 class="text-2xl font-black leading-tight">
-              ¿Quieres un Informe Completo y una Sesión de Estrategia 1 a 1?
-            </h3>
-            <p class="text-slate-900 font-medium text-sm md:text-base max-w-xl">
-              Súmate a la <strong>Zona VIP</strong> para recibir una devolución exhaustiva sobre tus puntos débiles detectados y acceso directo a nuestras mentorías con Experiencia PyME.
-            </p>
-            <div class="flex flex-col sm:flex-row items-center gap-4 pt-2">
-              <button
-                onclick="switchTab('vip')"
-                class="w-full sm:w-auto px-6 py-3 bg-slate-950 hover:bg-slate-900 text-white font-bold rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer text-sm"
-              >
-                <span>Acceder a Zona VIP por $ 4.500 ARS</span>
-                <i data-lucide="chevron-right" class="w-4 h-4"></i>
-              </button>
-              <span class="text-xs font-bold text-slate-900 bg-amber-400/60 px-3 py-1.5 rounded-lg border border-amber-300">
-                Valor Regular: USD $150
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PESTAÑA 3: ZONA VIP & FORMULARIO DE INSCRIPCIÓN / PAGO -->
-    <section id="tab-vip" class="tab-content hidden space-y-8">
-      <div class="bg-white rounded-2xl shadow-sm border border-amber-200 p-6 md:p-8 relative overflow-hidden">
-        <div class="absolute top-0 right-0 bg-amber-500 text-slate-950 text-xs font-extrabold px-4 py-1.5 rounded-bl-xl uppercase tracking-wider">
-          Cupos Limitados
-        </div>
-
-        <div class="max-w-2xl space-y-3">
-          <h3 class="text-2xl font-black text-slate-900">
-            Desbloquea la ZONA VIP de Experiencia PyME
-          </h3>
-          <p class="text-slate-600 text-sm leading-relaxed">
-            Pasa de un diagnóstico automatizado a un análisis profundo realizado por consultores senior. Identificamos deficiencias específicas en tu Propuesta de Valor y trazamos la hoja de ruta para tu lanzamiento.
-          </p>
-        </div>
-
-        <!-- Anclaje de Precios -->
-        <div class="my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 opacity-70">
-            <span class="text-xs font-bold text-slate-500 uppercase">Consultoría Tradicional</span>
-            <div class="text-2xl font-bold text-slate-400 line-through">USD $150 - $300</div>
-            <p class="text-xs text-slate-500 mt-1">Costo habitual por sesión presencial/virtual.</p>
-          </div>
-
-          <div class="p-4 rounded-xl border-2 border-amber-500 bg-amber-50/50 relative">
-            <span class="text-xs font-bold text-amber-800 uppercase">Acceso Especial Webinar</span>
-            <div class="text-3xl font-black text-amber-600">$ 4.500 ARS</div>
-            <p class="text-xs text-amber-900 font-semibold mt-1">Sin barreras financieras. Solo para asistentes comprometidos.</p>
-          </div>
-        </div>
-
-        <!-- Beneficios Incluidos -->
-        <div class="space-y-3 pt-2">
-          <h4 class="font-bold text-slate-800 text-sm">¿Qué incluye tu pase a la Zona VIP?</h4>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <div class="flex items-start gap-2">
-              <i data-lucide="star" class="w-4 h-4 text-amber-500 shrink-0 mt-1 fill-amber-500"></i>
-              <span><strong>Informe Analítico Expandido:</strong> Evaluación pormenorizada de cada pilar del Canvas.</span>
-            </div>
-            <div class="flex items-start gap-2">
-              <i data-lucide="star" class="w-4 h-4 text-amber-500 shrink-0 mt-1 fill-amber-500"></i>
-              <span><strong>Prioridad para Mentoría:</strong> Acceso a nuestros programas de acompañamiento personalizado.</span>
-            </div>
-            <div class="flex items-start gap-2">
-              <i data-lucide="star" class="w-4 h-4 text-amber-500 shrink-0 mt-1 fill-amber-500"></i>
-              <span><strong>Plan de Acción Directo:</strong> Pasos sugeridos para eliminar cuellos de botella antes de invertir.</span>
-            </div>
-            <div class="flex items-start gap-2">
-              <i data-lucide="star" class="w-4 h-4 text-amber-500 shrink-0 mt-1 fill-amber-500"></i>
-              <span><strong>Acceso a Plantillas Exclusivas:</strong> Modelos pre-diseñados para reestructurar la oferta.</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Botón de Activación Zona VIP -->
-      <div class="bg-slate-900 text-white rounded-2xl p-6 md:p-8 shadow-xl text-center space-y-4 border border-amber-500/30">
-        <div class="inline-flex items-center justify-center p-3 bg-amber-500/10 text-amber-400 rounded-full">
-          <i data-lucide="zap" class="w-8 h-8 fill-current"></i>
-        </div>
-        <h4 class="text-2xl font-black text-white">
-          ¡Activa tu Acceso a la Zona VIP!
-        </h4>
-        <p class="text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
-          Haz clic en el siguiente botón para acceder al formulario oficial de activación y reservar tu cupo para la sesión estratégica con Experiencia PyME.
-        </p>
-
-        <div class="pt-2 flex flex-col sm:flex-row justify-center gap-3">
-          <a
-            href="https://forms.gle/hCiJHWcnEeXNUkED6"
-            target="_blank"
-            rel="noopener noreferrer"
-            onclick="activateCurrentVip()"
-            class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-base shadow-lg hover:shadow-amber-500/20 transition-all duration-200 transform hover:-translate-y-0.5 cursor-pointer"
-          >
-            <span>Activar Zona VIP Ahora ($4.500 ARS)</span>
-            <i data-lucide="external-link" class="w-5 h-5"></i>
-          </a>
-        </div>
-
-        <p class="text-xs text-slate-400 pt-1">
-          Serás redirigido al formulario seguro de registro de Experiencia PyME.
-        </p>
-      </div>
-    </section>
-
-    <!-- PESTAÑA 4: BASE DE DATOS Y PLANILLA DE RESPUESTAS -->
-    <section id="tab-responses" class="tab-content hidden space-y-6">
-      <!-- Header Planilla -->
-      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <div class="flex items-center gap-2">
-            <i data-lucide="database" class="w-5 h-5 text-emerald-600"></i>
-            <h3 class="text-xl font-bold text-slate-900">Planilla de Datos & Registro de Asistentes</h3>
-          </div>
-          <p class="text-xs text-slate-500 mt-1">
-            Sincronizado en tiempo real con Google Sheets / Formulario de Experiencia PyME.
-          </p>
-        </div>
-
-        <button
-          onclick="exportToCSV()"
-          class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow transition flex items-center gap-2 cursor-pointer"
-        >
-          <i data-lucide="download" class="w-4 h-4"></i>
-          <span>Exportar CSV</span>
-        </button>
-      </div>
-
-      <!-- Métricas Rápidas -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase">Total Encuestados</p>
-            <p id="stat-total" class="text-2xl font-black text-slate-900">0</p>
-          </div>
-          <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
-            <i data-lucide="users" class="w-6 h-6"></i>
-          </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase">Promedio Diagnóstico</p>
-            <p id="stat-avg" class="text-2xl font-black text-blue-600">0 <span class="text-xs text-slate-400">/ 100</span></p>
-          </div>
-          <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-            <i data-lucide="trending-up" class="w-6 h-6"></i>
-          </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase">Convertidos a VIP</p>
-            <p id="stat-vip" class="text-2xl font-black text-amber-600">0</p>
-          </div>
-          <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
-            <i data-lucide="zap" class="w-6 h-6 fill-current"></i>
-          </div>
-        </div>
-      </div>
-
-      <!-- Barra de Filtros y Buscador -->
-      <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
-        <div class="relative w-full sm:w-80">
-          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
-          <input
-            type="text"
-            id="search-input"
-            oninput="renderTable()"
-            placeholder="Buscar por nombre, email o empresa..."
-            class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 outline-none"
-          />
-        </div>
-
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-          <span class="text-xs font-medium text-slate-500">Filtrar:</span>
-          <select
-            id="filter-vip"
-            onchange="renderTable()"
-            class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 outline-none cursor-pointer"
-          >
-            <option value="all">Todos los Registros</option>
-            <option value="vip">Solo Zona VIP</option>
-            <option value="standard">Solo Estándar</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Tabla de Registros -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr class="bg-slate-900 text-white font-semibold uppercase tracking-wider">
-                <th class="py-3.5 px-4"># ID</th>
-                <th class="py-3.5 px-4">Fecha</th>
-                <th class="py-3.5 px-4">Participante / Contacto</th>
-                <th class="py-3.5 px-4">Empresa</th>
-                <th class="py-3.5 px-4 text-center">C1 / C2 / C3</th>
-                <th class="py-3.5 px-4 text-center">Puntaje</th>
-                <th class="py-3.5 px-4">Diagnóstico Express</th>
-                <th class="py-3.5 px-4 text-center">Estado VIP</th>
-                <th class="py-3.5 px-4 text-center">Acción</th>
-              </tr>
-            </thead>
-            <tbody id="table-body" class="divide-y divide-slate-100">
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Footer -->
-  <footer class="border-t border-slate-200 bg-white py-6 mt-12 text-center text-xs text-slate-500">
-    <p>© 2026 Experiencia PyME - Herramienta de Evaluación de Modelos de Negocio</p>
-  </footer>
-
-  <script>
-    // Puntuaciones seleccionadas en el formulario (1 a 5)
-    const scores = {
-      c1_q1: 3,
-      c1_q2: 3,
-      c2_q1: 3,
-      c2_q2: 3,
-      c3_q1: 3,
-      c3_q2: 3
-    };
-
-    // Base de datos simulada
-    let responses = [
+    const QUESTIONS = [
       {
-        id: 1,
-        fecha: '2026-09-02 14:30',
-        nombre: 'Carlos Gómez',
-        email: 'carlos@empresa.com',
-        telefono: '+54 9 11 4567-8901',
-        empresa: 'Innovar Tech',
-        c1: 80,
-        c2: 70,
-        c3: 84,
-        puntajeTotal: 78,
-        nivel: 'Aceptable con Ajustes',
-        vipStatus: 'No'
+        id: 'q1',
+        category: 'Validación del Problema',
+        shortTitle: 'Validación',
+        question: '¿Qué tan identificado y validado está el dolor crítico o problema principal que resuelves a tu cliente?',
+        description: 'Evalúa el grado de certeza y evidencia empírica que tienes sobre el problema real de tu usuario.',
+        options: [
+          { value: 1, label: '1 - Solo suposiciones / Sin validar' },
+          { value: 2, label: '2 - Entrevistas informales / Poca evidencia' },
+          { value: 3, label: '3 - Validado con un grupo pequeño de usuarios' },
+          { value: 4, label: '4 - Problema claro y respaldado por métricas' },
+          { value: 5, label: '5 - Dolor crítico totalmente documentado y recurrente' }
+        ],
+        tactics: {
+          low: 'Realiza al menos 10 entrevistas de descubrimiento enfocadas únicamente en las fricciones de tus usuarios, sin vender la solución.',
+          high: 'Continúa documentando casos de uso e investigando dolores secundarios para expandir el valor entregado.'
+        }
       },
       {
-        id: 2,
-        fecha: '2026-09-02 15:15',
-        nombre: 'María Rodríguez',
-        email: 'maria@estudio.ar',
-        telefono: '+54 9 351 987-6543',
-        empresa: 'Estudio MR',
-        c1: 90,
-        c2: 95,
-        c3: 91,
-        puntajeTotal: 92,
-        nivel: 'Listo para Despliegue',
-        vipStatus: 'Sí ($4.500 ARS)'
+        id: 'q2',
+        category: 'Claridad del Mensaje',
+        shortTitle: 'Claridad',
+        question: '¿Con qué claridad comprende el cliente la razón fundamental por la cual debe comprarte a ti y no quedarse como está?',
+        description: 'Mide la fuerza de tu mensaje de conversión frente a la inercia o estado actual del cliente.',
+        options: [
+          { value: 1, label: '1 - El cliente suele confundir nuestra propuesta' },
+          { value: 2, label: '2 - Requiere mucha explicación para entenderse' },
+          { value: 3, label: '3 - Comprensible pero requiere esfuerzo explicativo' },
+          { value: 4, label: '4 - Mensaje claro y diferenciado en la primera iteración' },
+          { value: 5, label: '5 - Impacto inmediato: el cliente entiende la urgencia' }
+        ],
+        tactics: {
+          low: 'Simplifica la comunicación. Diseña una propuesta de valor en una sola frase con la estructura: [Ayudamos a X a lograr Y mediante Z].',
+          high: 'Testea copys y titulares de landing page mediante pruebas A/B para afinar las conversiones.'
+        }
+      },
+      {
+        id: 'q3',
+        category: 'Diferenciación de Mercado',
+        shortTitle: 'Diferenciación',
+        question: '¿Cómo percibe el mercado el valor único de tu propuesta en comparación con las alternativas existentes?',
+        description: 'Determina si te perciben como un sustituto común o como una solución única e insustituible.',
+        options: [
+          { value: 1, label: '1 - Percibido igual a las opciones existentes' },
+          { value: 2, label: '2 - Ligeras mejoras en precio o servicio' },
+          { value: 3, label: '3 - Diferenciación moderada reconocida por algunos' },
+          { value: 4, label: '4 - Ventaja clara en funciones o enfoque' },
+          { value: 5, label: '5 - Propuesta única radicalmente superior en el nicho' }
+        ],
+        tactics: {
+          low: 'Mapea la competencia en una matriz de 2x2 para encontrar un ángulo de posicionamiento aún no reclamado.',
+          high: 'Protege tu ventaja competitiva comunicando fuertemente el beneficio único que nadie más ofrece.'
+        }
+      },
+      {
+        id: 'q4',
+        category: 'Infranqueabilidad / Defensibilidad',
+        shortTitle: 'Defensibilidad',
+        question: '¿Qué tan difícil resulta para la competencia directa o sustitutos replicar los beneficios de tu propuesta de valor?',
+        description: 'Evalúa tus barreras de entrada (tecnología, marca, efectos de red, conocimientos clave).',
+        options: [
+          { value: 1, label: '1 - Muy fácil de copiar de inmediato' },
+          { value: 2, label: '2 - Fácil de copiar en pocos meses' },
+          { value: 3, label: '3 - Dificultad moderada / Requiere esfuerzo' },
+          { value: 4, label: '4 - Difícil debido a alianzas o tecnología propia' },
+          { value: 5, label: '5 - Prácticamente imposible de replicar en el corto plazo' }
+        ],
+        tactics: {
+          low: 'Crea defensibilidad basada en la experiencia de cliente, alianzas exclusivas o efectos de red que tus competidores no puedan clonar fácilmente.',
+          high: 'Sigue innovando en la arquitectura del producto o servicio para mantener la distancia frente a seguidores.'
+        }
+      },
+      {
+        id: 'q5',
+        category: 'Ajuste e Hiper-personalización',
+        shortTitle: 'Personalización',
+        question: '¿En qué medida tu propuesta de valor se adapta o personaliza para responder a los perfiles específicos de cliente?',
+        description: 'Indica la relevancia y resonancia exacta de la propuesta según tu Buyer Persona analizado.',
+        options: [
+          { value: 1, label: '1 - Mensaje genérico para todo público' },
+          { value: 2, label: '2 - Leve adaptación por industria o tipo' },
+          { value: 3, label: '3 - Adaptado a 2 o 3 segmentos principales' },
+          { value: 4, label: '4 - Alta personalización según necesidades específicas' },
+          { value: 5, label: '5 - Solución quirúrgica hecha a la medida del cliente ideal' }
+        ],
+        tactics: {
+          low: 'Pasa de la masividad al nicho. Elige un solo segmento prioritario y adapta toda tu oferta para sus necesidades concretas.',
+          high: 'Crea planes o módulos específicos que optimicen la experiencia para sub-segmentos de mayor valor.'
+        }
+      },
+      {
+        id: 'q6',
+        category: 'Alineación de Canales',
+        shortTitle: 'Canales',
+        question: '¿Qué tan alineados están los canales de entrega y comunicación de la propuesta con las expectativas del segmento?',
+        description: 'Mide la coherencia entre el valor prometido y la experiencia real de entrega al usuario.',
+        options: [
+          { value: 1, label: '1 - Desconexión entre propuesta y canal de venta' },
+          { value: 2, label: '2 - Canales tradicionales poco eficientes' },
+          { value: 3, label: '3 - Canales funcionales pero con fricción' },
+          { value: 4, label: '4 - Buena alineación y fluidez en el proceso' },
+          { value: 5, label: '5 - Experiencia omnicanal impecable y sin fricciones' }
+        ],
+        tactics: {
+          low: 'Elimina los pasos innecesarios en el embudo. Haz que probar o comprar tu solución sea fluido y casi sin esfuerzo.',
+          high: 'Mide continuamente la tasa de conversión y satisfacción por canal para potenciar los de mayor rendimiento.'
+        }
       }
     ];
 
-    let currentResult = null;
-    let lastRegisteredEmail = '';
+    // Componente del Gráfico de Radar usando Canvas Nativo HTML5
+    const RadarChart = ({ data, width = 340, height = 300 }) => {
+      const canvasRef = React.useRef(null);
 
-    // Inicializar íconos y tabla
-    document.addEventListener('DOMContentLoaded', () => {
-      lucide.createIcons();
-      renderTable();
-    });
+      React.useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.add('hidden');
-        tab.classList.remove('block');
-      });
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
 
-      const target = document.getElementById(`tab-${tabId}`);
-      if (target) {
-        target.classList.remove('hidden');
-        target.classList.add('block');
-      }
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const radius = Math.min(centerX, centerY) - 50;
+        const numSides = data.length;
+        const angleStep = (Math.PI * 2) / numSides;
 
-      document.querySelectorAll('.nav-tab').forEach(btn => {
-        btn.classList.remove('bg-blue-600', 'text-white', 'shadow');
-        btn.classList.add('text-slate-300');
-      });
+        ctx.clearRect(0, 0, width, height);
 
-      const activeBtn = document.getElementById(`btn-tab-${tabId}`);
-      if (activeBtn) {
-        activeBtn.classList.add('bg-blue-600', 'text-white', 'shadow');
-        activeBtn.classList.remove('text-slate-300');
-      }
-
-      lucide.createIcons();
-    }
-
-    function selectRating(field, value) {
-      scores[field] = value;
-
-      const buttons = document.querySelectorAll(`.rating-btn.${field}`);
-      buttons.forEach((btn, index) => {
-        const btnVal = index + 1;
-        if (btnVal === value) {
-          btn.classList.add('active', 'bg-blue-600', 'text-white', 'border-blue-600');
-          btn.classList.remove('bg-white', 'text-slate-700', 'border-slate-300');
-        } else {
-          btn.classList.remove('active', 'bg-blue-600', 'text-white', 'border-blue-600');
-          btn.classList.add('bg-white', 'text-slate-700', 'border-slate-300');
-        }
-      });
-    }
-
-    function handleFormSubmit(e) {
-      e.preventDefault();
-
-      const btnSubmit = document.getElementById('btn-submit');
-      btnSubmit.disabled = true;
-      btnSubmit.innerHTML = `
-        <i data-lucide="refresh-cw" class="w-5 h-5 animate-spin"></i>
-        <span>Procesando Diagnóstico...</span>
-      `;
-      lucide.createIcons();
-
-      const nombre = document.getElementById('input-nombre').value;
-      const email = document.getElementById('input-email').value;
-      const telefono = document.getElementById('input-telefono').value || 'Sin teléfono';
-      const empresa = document.getElementById('input-empresa').value || 'Particular';
-
-      lastRegisteredEmail = email;
-
-      setTimeout(() => {
-        const c1 = (scores.c1_q1 + scores.c1_q2) / 2;
-        const c2 = (scores.c2_q1 + scores.c2_q2) / 2;
-        const c3 = (scores.c3_q1 + scores.c3_q2) / 2;
-
-        const total = Math.round(((c1 + c2 + c3) / 15) * 100);
-
-        let level = '';
-        let summary = '';
-        let recommendations = [];
-
-        if (total >= 80) {
-          level = 'Óptimo para Despliegue de Mercado';
-          summary = 'Tu propuesta de valor presenta una alta alineación con el mercado y resuelve un dolor crítico con diferenciación sólida.';
-          recommendations = [
-            'Iniciar la fase de escalamiento y campañas institucionales de lanzamiento.',
-            'Optimizar embudos de conversión y retención de clientes.',
-            'Formalizar barreras defensivas frente a nuevos competidores.'
-          ];
-        } else if (total >= 55) {
-          level = 'Aceptable - Requiere Ajustes Puntuales';
-          summary = 'Existe un encaje inicial relevante, pero requiere fortalecer la diferenciación o validar más a fondo la disposición a pagar.';
-          recommendations = [
-            'Ajustar el mensaje comercial enfatizando el beneficio principal.',
-            'Realizar entrevistas breves de satisfacción con tus clientes actuales.',
-            'Revisar la estructura de costos frente al valor percibido.'
-          ];
-        } else {
-          level = 'Etapa Temprana - Necesita Rediseño de Propuesta';
-          summary = 'La propuesta actual requiere revisión en sus fundamentos antes de invertir recursos significativos en el lanzamiento masivo.';
-          recommendations = [
-            'Re-entrevistar a clientes potenciales para redefinir el dolor principal.',
-            'Simplificar la oferta eliminando características secundarias.',
-            'Identificar con precisión el nicho inicial de adopters.'
-          ];
+        // Anillos concéntricos de escala (1 a 5)
+        for (let level = 1; level <= 5; level++) {
+          const r = (radius / 5) * level;
+          ctx.beginPath();
+          for (let i = 0; i < numSides; i++) {
+            const angle = i * angleStep - Math.PI / 2;
+            const x = centerX + r * Math.cos(angle);
+            const y = centerY + r * Math.sin(angle);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.strokeStyle = level === 5 ? '#cbd5e1' : '#f1f5f9';
+          ctx.lineWidth = 1;
+          ctx.stroke();
         }
 
-        const c1Pct = Math.round((c1 / 5) * 100);
-        const c2Pct = Math.round((c2 / 5) * 100);
-        const c3Pct = Math.round((c3 / 5) * 100);
+        // Ejes radiales
+        for (let i = 0; i < numSides; i++) {
+          const angle = i * angleStep - Math.PI / 2;
+          const x = centerX + radius * Math.cos(angle);
+          const y = centerY + radius * Math.sin(angle);
+          ctx.beginPath();
+          ctx.moveTo(centerX, centerY);
+          ctx.lineTo(x, y);
+          ctx.strokeStyle = '#e2e8f0';
+          ctx.stroke();
 
-        currentResult = {
-          total,
-          level,
-          summary,
-          recommendations,
-          c1Pct,
-          c2Pct,
-          c3Pct
-        };
+          // Etiquetas de los ejes
+          const labelR = radius + 22;
+          const labelX = centerX + labelR * Math.cos(angle);
+          const labelY = centerY + labelR * Math.sin(angle);
 
-        // Guardar nuevo registro
-        const newResponse = {
-          id: responses.length + 1,
-          fecha: new Date().toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }),
-          nombre,
-          email,
-          telefono,
-          empresa,
-          c1: c1Pct,
-          c2: c2Pct,
-          c3: c3Pct,
-          puntajeTotal: total,
-          nivel: level,
-          vipStatus: 'No'
-        };
-
-        responses.unshift(newResponse);
-
-        // Restaurar botón
-        btnSubmit.disabled = false;
-        btnSubmit.innerHTML = `
-          <span>Obtener Mi Diagnóstico Express</span>
-          <i data-lucide="arrow-right" class="w-5 h-5"></i>
-        `;
-
-        renderResults();
-        renderTable();
-        switchTab('results');
-      }, 800);
-    }
-
-    function renderResults() {
-      if (!currentResult) return;
-
-      document.getElementById('no-report-warning').classList.add('hidden');
-      document.getElementById('report-card').classList.remove('hidden');
-
-      document.getElementById('res-level').innerText = currentResult.level;
-      document.getElementById('res-score').innerText = currentResult.total;
-      document.getElementById('res-summary').innerText = currentResult.summary;
-
-      document.getElementById('res-c1-val').innerText = `${currentResult.c1Pct}%`;
-      document.getElementById('res-c1-bar').style.width = `${currentResult.c1Pct}%`;
-
-      document.getElementById('res-c2-val').innerText = `${currentResult.c2Pct}%`;
-      document.getElementById('res-c2-bar').style.width = `${currentResult.c2Pct}%`;
-
-      document.getElementById('res-c3-val').innerText = `${currentResult.c3Pct}%`;
-      document.getElementById('res-c3-bar').style.width = `${currentResult.c3Pct}%`;
-
-      const listContainer = document.getElementById('res-recommendations');
-      listContainer.innerHTML = '';
-      currentResult.recommendations.forEach(rec => {
-        const li = document.createElement('li');
-        li.className = 'flex items-start gap-2 text-sm text-slate-700';
-        li.innerHTML = `
-          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
-          <span>${rec}</span>
-        `;
-        listContainer.appendChild(li);
-      });
-
-      lucide.createIcons();
-    }
-
-    function activateCurrentVip() {
-      if (lastRegisteredEmail) {
-        toggleVipByEmail(lastRegisteredEmail);
-      }
-    }
-
-    function toggleVipByEmail(email) {
-      responses = responses.map(r => {
-        if (r.email.toLowerCase() === email.toLowerCase()) {
-          const isVip = r.vipStatus !== 'No';
-          return {
-            ...r,
-            vipStatus: isVip ? 'No' : 'Sí ($4.500 ARS)'
-          };
+          ctx.font = '600 10px Inter, sans-serif';
+          ctx.fillStyle = '#475569';
+          ctx.textAlign = Math.abs(Math.cos(angle)) < 0.1 ? 'center' : Math.cos(angle) > 0 ? 'left' : 'right';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(data[i].label, labelX, labelY);
         }
-        return r;
-      });
-      renderTable();
-    }
 
-    function renderTable() {
-      const searchTerm = (document.getElementById('search-input')?.value || '').toLowerCase();
-      const vipFilter = document.getElementById('filter-vip')?.value || 'all';
+        // Polígono de Datos del Usuario
+        ctx.beginPath();
+        data.forEach((d, i) => {
+          const val = Math.max(1, Math.min(5, d.value));
+          const r = (radius / 5) * val;
+          const angle = i * angleStep - Math.PI / 2;
+          const x = centerX + r * Math.cos(angle);
+          const y = centerY + r * Math.sin(angle);
 
-      const filtered = responses.filter(r => {
-        const matchesSearch = 
-          r.nombre.toLowerCase().includes(searchTerm) ||
-          r.email.toLowerCase().includes(searchTerm) ||
-          r.empresa.toLowerCase().includes(searchTerm);
-
-        if (vipFilter === 'vip') return matchesSearch && r.vipStatus !== 'No';
-        if (vipFilter === 'standard') return matchesSearch && r.vipStatus === 'No';
-        return matchesSearch;
-      });
-
-      const tbody = document.getElementById('table-body');
-      tbody.innerHTML = '';
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colSpan="9" class="py-8 text-center text-slate-400">
-              No se encontraron registros que coincidan con el criterio de búsqueda.
-            </td>
-          </tr>
-        `;
-      } else {
-        filtered.forEach(resp => {
-          const isVip = resp.vipStatus !== 'No';
-          const tr = document.createElement('tr');
-          tr.className = 'hover:bg-slate-50 transition';
-          tr.innerHTML = `
-            <td class="py-3 px-4 font-mono font-bold text-slate-400">#${resp.id}</td>
-            <td class="py-3 px-4 text-slate-500 whitespace-nowrap">${resp.fecha}</td>
-            <td class="py-3 px-4">
-              <div class="font-bold text-slate-900">${resp.nombre}</div>
-              <div class="text-slate-500 text-[11px]">${resp.email}</div>
-              <div class="text-slate-400 text-[10px]">${resp.telefono}</div>
-            </td>
-            <td class="py-3 px-4 text-slate-700 font-medium">${resp.empresa}</td>
-            <td class="py-3 px-4 text-center">
-              <span class="text-blue-600 font-bold">${resp.c1}%</span> / <span class="text-indigo-600 font-bold">${resp.c2}%</span> / <span class="text-purple-600 font-bold">${resp.c3}%</span>
-            </td>
-            <td class="py-3 px-4 text-center">
-              <span class="inline-block px-2.5 py-1 rounded-full bg-slate-900 text-blue-400 font-extrabold text-xs">
-                ${resp.puntajeTotal}%
-              </span>
-            </td>
-            <td class="py-3 px-4 max-w-xs">
-              <span class="text-slate-800 font-medium leading-tight block">${resp.nivel}</span>
-            </td>
-            <td class="py-3 px-4 text-center">
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-bold text-[11px] ${
-                isVip
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                  : 'bg-slate-100 text-slate-500'
-              }">
-                ${isVip ? '<i data-lucide="zap" class="w-3 h-3 fill-current text-amber-600"></i>' : ''}
-                ${resp.vipStatus}
-              </span>
-            </td>
-            <td class="py-3 px-4 text-center">
-              <button 
-                onclick="toggleVipByEmail('${resp.email}')" 
-                class="px-2 py-1 text-[11px] font-semibold rounded bg-slate-100 hover:bg-amber-100 hover:text-amber-900 text-slate-600 border border-slate-200 transition cursor-pointer"
-                title="Cambiar estado VIP"
-              >
-                ${isVip ? 'Quitar VIP' : 'Hacer VIP'}
-              </button>
-            </td>
-          `;
-          tbody.appendChild(tr);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
         });
-      }
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(79, 70, 229, 0.25)';
+        ctx.fill();
+        ctx.strokeStyle = '#4f46e5';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
 
-      // Actualizar Estadísticas y Contadores
-      document.getElementById('nav-count').innerText = responses.length;
-      document.getElementById('stat-total').innerText = responses.length;
+        // Puntos sobre los vértices
+        data.forEach((d, i) => {
+          const val = Math.max(1, Math.min(5, d.value));
+          const r = (radius / 5) * val;
+          const angle = i * angleStep - Math.PI / 2;
+          const x = centerX + r * Math.cos(angle);
+          const y = centerY + r * Math.sin(angle);
 
-      const avg = responses.length > 0
-        ? Math.round(responses.reduce((acc, curr) => acc + curr.puntajeTotal, 0) / responses.length)
-        : 0;
-      document.getElementById('stat-avg').innerText = `${avg} / 100`;
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#4f46e5';
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        });
 
-      const vipCount = responses.filter(r => r.vipStatus !== 'No').length;
-      document.getElementById('stat-vip').innerText = vipCount;
+      }, [data, width, height]);
 
-      lucide.createIcons();
-    }
-
-    function exportToCSV() {
-      const headers = ['ID,Fecha,Nombre,Email,Telefono,Empresa,C1_Alivio,C2_Diferenciacion,C3_Coherencia,Puntaje_Total,Nivel,Estado_VIP'];
-      const rows = responses.map(r => 
-        `${r.id},"${r.fecha}","${r.nombre}","${r.email}","${r.telefono}","${r.empresa}",${r.c1}%,${r.c2}%,${r.c3}%,${r.puntajeTotal}%,${r.nivel},"${r.vipStatus}"`
+      return (
+        <div className="flex justify-center items-center my-2">
+          <canvas 
+            ref={canvasRef} 
+            style={{ width: `${width}px`, height: `${height}px` }} 
+            className="max-w-full h-auto"
+          />
+        </div>
       );
-      const csvContent = 'data:text/csv;charset=utf-8,' + [headers, ...rows].join('\n');
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `Respuestas_Experiencia_PyME_${new Date().toISOString().slice(0,10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    };
+
+    function App() {
+      const { useState, useEffect } = React;
+
+      const [step, setStep] = useState('welcome'); // welcome, survey, results, admin
+      const [userData, setUserData] = useState({ name: '', email: '', project: '' });
+      const [answers, setAnswers] = useState({});
+      const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+      const [isSubmitting, setIsSubmitting] = useState(false);
+      const [submissions, setSubmissions] = useState([]);
+      const [searchTerm, setSearchTerm] = useState('');
+
+      // Auth Panel Facilitador
+      const [adminPassword, setAdminPassword] = useState('');
+      const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+      const [adminError, setAdminError] = useState('');
+
+      // Cargar envíos desde almacenamiento local
+      useEffect(() => {
+        const saved = localStorage.getItem('diag_submissions_v2');
+        if (saved) {
+          try { setSubmissions(JSON.parse(saved)); } catch (e) {}
+        } else {
+          // Datos iniciales de demostración
+          const demoData = [
+            { id: 1, name: 'María García', email: 'maria@techflow.io', project: 'TechFlow AI', date: '2026-08-28', score: 26, level: 'Consolidado', answers: { q1: 5, q2: 4, q3: 5, q4: 4, q5: 4, q6: 4 } },
+            { id: 2, name: 'Carlos Mendoza', email: 'carlos@ecofood.com', project: 'EcoFood Express', date: '2026-08-30', score: 16, level: 'En Desarrollo', answers: { q1: 3, q2: 2, q3: 3, q4: 2, q5: 3, q6: 3 } },
+            { id: 3, name: 'Laura Restrepo', email: 'laura@eduplay.app', project: 'EduPlay Kids', date: '2026-09-01', score: 10, level: 'Inicial', answers: { q1: 2, q2: 1, q3: 2, q4: 1, q5: 2, q6: 2 } }
+          ];
+          setSubmissions(demoData);
+        }
+      }, []);
+
+      const handleStartSurvey = (e) => {
+        e.preventDefault();
+        if (!userData.name || !userData.email || !userData.project) return;
+        setStep('survey');
+        setCurrentQuestionIndex(0);
+      };
+
+      const handleSelectOption = (questionId, value) => {
+        setAnswers(prev => ({ ...prev, [questionId]: value }));
+      };
+
+      const handleNextQuestion = () => {
+        if (currentQuestionIndex < QUESTIONS.length - 1) {
+          setCurrentQuestionIndex(prev => prev + 1);
+        } else {
+          submitResults();
+        }
+      };
+
+      const handlePrevQuestion = () => {
+        if (currentQuestionIndex > 0) {
+          setCurrentQuestionIndex(prev => prev - 1);
+        }
+      };
+
+      const calculateTotalScore = (answersObj = answers) => {
+        return Object.values(answersObj).reduce((acc, curr) => acc + (Number(curr) || 0), 0);
+      };
+
+      const getMaturityLevel = (score) => {
+        if (score >= 23) return { level: 'Consolidado', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', barBg: 'bg-emerald-500' };
+        if (score >= 15) return { level: 'En Desarrollo', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200', barBg: 'bg-amber-500' };
+        return { level: 'Inicial', color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', barBg: 'bg-indigo-500' };
+      };
+
+      const submitResults = async () => {
+        setIsSubmitting(true);
+        const score = calculateTotalScore();
+        const maturity = getMaturityLevel(score);
+        
+        const newSubmission = {
+          id: Date.now(),
+          ...userData,
+          date: new Date().toISOString().split('T')[0],
+          score,
+          level: maturity.level,
+          answers
+        };
+
+        const updatedSubmissions = [newSubmission, ...submissions];
+        setSubmissions(updatedSubmissions);
+        localStorage.setItem('diag_submissions_v2', JSON.stringify(updatedSubmissions));
+
+        if (GOOGLE_SHEETS_WEBHOOK_URL) {
+          try {
+            await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+              method: 'POST',
+              mode: 'no-cors',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(newSubmission)
+            });
+          } catch (err) {
+            console.error('Error al sincronizar con Webhook:', err);
+          }
+        }
+
+        setIsSubmitting(false);
+        setStep('results');
+      };
+
+      const handleAdminLogin = (e) => {
+        e.preventDefault();
+        if (adminPassword === 'taller2026' || adminPassword === 'admin') {
+          setIsAdminAuthenticated(true);
+          setAdminError('');
+        } else {
+          setAdminError('Contraseña incorrecta (Usa "taller2026" o "admin")');
+        }
+      };
+
+      const exportToCSV = () => {
+        const headers = ['Nombre', 'Email', 'Proyecto', 'Fecha', 'Puntaje Total', 'Nivel', 'Q1_Validacion', 'Q2_Claridad', 'Q3_Diferenciacion', 'Q4_Defensibilidad', 'Q5_Personalizacion', 'Q6_Canales'];
+        const rows = submissions.map(s => [
+          `"${s.name}"`,
+          `"${s.email}"`,
+          `"${s.project}"`,
+          s.date,
+          s.score,
+          `"${s.level}"`,
+          s.answers?.q1 || '',
+          s.answers?.q2 || '',
+          s.answers?.q3 || '',
+          s.answers?.q4 || '',
+          s.answers?.q5 || '',
+          s.answers?.q6 || ''
+        ]);
+
+        const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', `Reporte_Diagnosticos_Propuesta_Valor_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+
+      const currentQ = QUESTIONS[currentQuestionIndex];
+      const totalScore = calculateTotalScore();
+      const maturityInfo = getMaturityLevel(totalScore);
+
+      // Datos estructurados para el Gráfico de Radar
+      const radarData = QUESTIONS.map(q => ({
+        label: q.shortTitle,
+        value: answers[q.id] || 0
+      }));
+
+      // Identificación de las fortalezas y oportunidades de mejora
+      const sortedQuestions = [...QUESTIONS].sort((a, b) => (answers[b.id] || 0) - (answers[a.id] || 0));
+      const topStrengths = sortedQuestions.slice(0, 2);
+      const topImprovements = sortedQuestions.slice(-2).reverse();
+
+      // Métricas acumuladas para el Facilitador
+      const filteredSubmissions = submissions.filter(s => 
+        s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        s.project.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+      return (
+        <div className="flex flex-col min-h-screen">
+          {/* Header General */}
+          <header className="bg-white border-b border-slate-200 sticky top-0 z-30 print:hidden">
+            <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setStep('welcome')}>
+                <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-black text-lg shadow-md shadow-indigo-200">
+                  PV
+                </div>
+                <div>
+                  <h1 className="font-bold text-slate-900 text-base sm:text-lg leading-tight">Diagnóstico de Propuesta de Valor</h1>
+                  <p className="text-xs text-slate-500">Evaluación Estratégica Interactiva</p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                {step !== 'admin' ? (
+                  <button 
+                    onClick={() => setStep('admin')} 
+                    className="text-xs font-semibold text-slate-600 hover:text-indigo-600 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-indigo-200 transition-colors flex items-center space-x-1.5"
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>Panel Facilitador</span>
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => setStep('welcome')} 
+                    className="text-xs font-semibold text-slate-600 hover:text-indigo-600 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors flex items-center space-x-1.5"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Volver al Inicio</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </header>
+
+          {/* CONTENIDO PRINCIPAL */}
+          <main className="max-w-3xl mx-auto px-4 py-8 flex-1 w-full">
+
+            {/* 1. ONBOARDING Y REGISTRO DE PARTICIPANTE */}
+            {step === 'welcome' && (
+              <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-10 space-y-8 animate-fadeIn">
+                <div className="text-center space-y-3">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5" /> Herramienta para Emprendedores
+                  </span>
+                  <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Evalúa la Potencia de tu Propuesta
+                  </h2>
+                  <p className="text-slate-600 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
+                    Identifica brechas críticas en tu modelo de negocio respondiendo 6 dimensiones clave de validación, claridad, diferenciación y canales.
+                  </p>
+                </div>
+
+                <form onSubmit={handleStartSurvey} className="space-y-4 max-w-md mx-auto pt-2">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Tu Nombre Completo *
+                    </label>
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="ej. Laura Morales"
+                      value={userData.name}
+                      onChange={e => setUserData({...userData, name: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Correo Electrónico *
+                    </label>
+                    <input 
+                      type="email" 
+                      required
+                      placeholder="ej. laura@miempresa.com"
+                      value={userData.email}
+                      onChange={e => setUserData({...userData, email: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Nombre del Proyecto / Emprendimiento *
+                    </label>
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="ej. EcoSmart Pack"
+                      value={userData.project}
+                      onChange={e => setUserData({...userData, project: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm"
+                    />
+                  </div>
+
+                  <button 
+                    type="submit"
+                    className="w-full py-3.5 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all flex items-center justify-center space-x-2 text-base pt-3"
+                  >
+                    <span>Comenzar Diagnóstico</span>
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </form>
+
+                <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-100 text-center">
+                  <div>
+                    <p className="text-lg font-bold text-slate-800">6 Áreas</p>
+                    <p className="text-xs text-slate-500">Evaluación 360°</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-slate-800">~ 3 Min</p>
+                    <p className="text-xs text-slate-500">Tiempo de respuesta</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-slate-800">Radar 2D</p>
+                    <p className="text-xs text-slate-500">Gráfico interactivo</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 2. CUESTIONARIO DINÁMICO */}
+            {step === 'survey' && currentQ && (
+              <div className="space-y-6 animate-fadeIn">
+                {/* Barra de Progreso */}
+                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                  <div className="flex justify-between items-center text-xs font-bold text-slate-500 mb-2">
+                    <span>Pregunta {currentQuestionIndex + 1} de {QUESTIONS.length}</span>
+                    <span className="text-indigo-600">{Math.round(((currentQuestionIndex + 1) / QUESTIONS.length) * 100)}% Completado</span>
+                  </div>
+                  <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-indigo-600 h-full rounded-full transition-all duration-300 ease-out"
+                      style={{ width: `${((currentQuestionIndex + 1) / QUESTIONS.length) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Tarjeta de Pregunta */}
+                <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 sm:p-8 space-y-6">
+                  <div className="space-y-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md inline-block">
+                      {currentQ.category}
+                    </span>
+                    <h3 className="text-xl sm:text-2xl font-bold text-slate-900 leading-snug">
+                      {currentQ.question}
+                    </h3>
+                    <p className="text-sm text-slate-500 leading-relaxed">
+                      {currentQ.description}
+                    </p>
+                  </div>
+
+                  {/* Opciones de Nivel */}
+                  <div className="space-y-3 pt-2">
+                    {currentQ.options.map((opt) => {
+                      const isSelected = answers[currentQ.id] === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => handleSelectOption(currentQ.id, opt.value)}
+                          className={`w-full text-left p-4 rounded-xl border transition-all flex items-start space-x-3.5 ${
+                            isSelected 
+                              ? 'border-indigo-600 bg-indigo-50/70 ring-2 ring-indigo-500/20 text-indigo-950 font-semibold shadow-sm' 
+                              : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700'
+                          }`}
+                        >
+                          <div className={`mt-0.5 w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+                            isSelected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 bg-white'
+                          }`}>
+                            {isSelected && <CheckCircle className="w-3.5 h-3.5" />}
+                          </div>
+                          <span className="text-sm sm:text-base leading-snug">{opt.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Controles de Navegación */}
+                  <div className="flex justify-between items-center pt-6 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={handlePrevQuestion}
+                      disabled={currentQuestionIndex === 0}
+                      className={`flex items-center space-x-1 px-4 py-2.5 rounded-xl font-semibold text-sm transition-colors ${
+                        currentQuestionIndex === 0 
+                          ? 'text-slate-300 cursor-not-allowed' 
+                          : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      <span>Anterior</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={!answers[currentQ.id]}
+                      onClick={handleNextQuestion}
+                      className={`flex items-center space-x-2 px-6 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all ${
+                        !answers[currentQ.id]
+                          ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                          : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200'
+                      }`}
+                    >
+                      {isSubmitting ? (
+                        <span>Procesando...</span>
+                      ) : currentQuestionIndex === QUESTIONS.length - 1 ? (
+                        <span>Finalizar Diagnóstico</span>
+                      ) : (
+                        <>
+                          <span>Siguiente</span>
+                          <ChevronRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 3. RESULTADOS, GRÁFICO DE RADAR Y PLAN DE ACCIÓN */}
+            {step === 'results' && (
+              <div className="space-y-6 animate-fadeIn">
+                <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8 space-y-8 print:p-0 print:shadow-none print:border-none">
+                  
+                  {/* Encabezado del Reporte */}
+                  <div className="text-center space-y-2 pb-6 border-b border-slate-100">
+                    <div className="inline-flex items-center justify-center w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full mb-1">
+                      <Award className="w-6 h-6" />
+                    </div>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+                      Reporte de Propuesta de Valor
+                    </h2>
+                    <p className="text-sm text-slate-500">
+                      Proyecto: <span className="font-bold text-slate-800">{userData.project}</span> • Emprendedor/a: <span className="font-semibold text-slate-700">{userData.name}</span>
+                    </p>
+                  </div>
+
+                  {/* Nivel de Madurez */}
+                  <div className={`p-6 rounded-2xl border ${maturityInfo.bg} ${maturityInfo.border} text-center space-y-3`}>
+                    <span className="text-xs font-extrabold uppercase tracking-widest text-slate-500">Nivel de Madurez Estratégica</span>
+                    <div className="flex items-center justify-center space-x-3">
+                      <span className={`text-3xl sm:text-4xl font-black ${maturityInfo.color}`}>
+                        {maturityInfo.level}
+                      </span>
+                      <span className="text-2xl font-bold text-slate-700 bg-white/90 px-3 py-1 rounded-xl shadow-sm border border-slate-200/60">
+                        {totalScore} / 30 pts
+                      </span>
+                    </div>
+
+                    <p className="pt-1 text-sm text-slate-700 max-w-xl mx-auto leading-relaxed">
+                      {maturityInfo.level === 'Consolidado' && '🔥 Tu propuesta posee alta deseabilidad, tracción y defensibilidad. Enfócate en la optimización de canales de escala y conversión.'}
+                      {maturityInfo.level === 'En Desarrollo' && '🚀 Base sólida creada. Presentas buen potencial pero requieres fortalecer la diferenciación y reducir barreras de entrada.'}
+                      {maturityInfo.level === 'Inicial' && '💡 Propuesta en fase de hipótesis. Tu prioridad número uno debe ser salir a validar el dolor real del cliente mediante experimentos.'}
+                    </p>
+                  </div>
+
+                  {/* Gráfico de Radar Interactivo */}
+                  <div className="space-y-3 pt-2">
+                    <h3 className="font-bold text-slate-800 text-base flex items-center space-x-2">
+                      <BarChart className="w-4 h-4 text-indigo-600" />
+                      <span>Matriz Radial de Fortalezas y Brechas</span>
+                    </h3>
+                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex justify-center">
+                      <RadarChart data={radarData} width={340} height={290} />
+                    </div>
+                  </div>
+
+                  {/* Recomendaciones Tácticas Personalizadas */}
+                  <div className="space-y-4 pt-2">
+                    <h3 className="font-bold text-slate-800 text-base flex items-center space-x-2">
+                      <Lightbulb className="w-4 h-4 text-amber-500" />
+                      <span>Plan de Acción Táctico Recomendado</span>
+                    </h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Fortalezas Clave */}
+                      <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-100 space-y-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 block">
+                          💪 Principales Fortalezas
+                        </span>
+                        <ul className="space-y-2 text-xs text-slate-700">
+                          {topStrengths.map(q => (
+                            <li key={q.id} className="leading-relaxed">
+                              <strong>{q.category}:</strong> {q.tactics.high}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Áreas Prioritarias de Mejora */}
+                      <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-100 space-y-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-indigo-800 block">
+                          🎯 Oportunidades de Mejora
+                        </span>
+                        <ul className="space-y-2 text-xs text-slate-700">
+                          {topImprovements.map(q => (
+                            <li key={q.id} className="leading-relaxed">
+                              <strong>{q.category}:</strong> {q.tactics.low}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Desglose Detallado */}
+                  <div className="space-y-3 pt-2">
+                    <h3 className="font-bold text-slate-800 text-base">Puntaje por Dimensión</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {QUESTIONS.map((q) => {
+                        const val = answers[q.id] || 0;
+                        return (
+                          <div key={q.id} className="p-3 rounded-xl border border-slate-100 bg-slate-50/60 space-y-1.5">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="font-semibold text-slate-700">{q.category}</span>
+                              <span className="font-bold text-indigo-600 bg-white px-2 py-0.5 rounded border border-slate-200">
+                                {val} / 5
+                              </span>
+                            </div>
+                            <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                              <div className="bg-indigo-600 h-full rounded-full" style={{ width: `${(val / 5) * 100}%` }}></div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Acciones del Reporte */}
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-100 print:hidden">
+                    <button
+                      onClick={() => window.print()}
+                      className="flex-1 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm transition-colors flex items-center justify-center space-x-2 shadow-md"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Imprimir / Guardar PDF</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setAnswers({});
+                        setStep('welcome');
+                      }}
+                      className="py-3 px-4 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-sm transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      <span>Nuevo Diagnóstico</span>
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            )}
+
+            {/* 4. PANEL DEL FACILITADOR / ANALÍTICA */}
+            {step === 'admin' && (
+              <div className="space-y-6 animate-fadeIn">
+                {!isAdminAuthenticated ? (
+                  /* Autenticación Facilitador */
+                  <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8 max-w-md mx-auto text-center space-y-6">
+                    <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto">
+                      <Lock className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-slate-900">Acceso al Panel Facilitador</h2>
+                      <p className="text-xs text-slate-500 mt-1">Ingresa la clave docente para gestionar y ver las respuestas del grupo.</p>
+                    </div>
+
+                    <form onSubmit={handleAdminLogin} className="space-y-4">
+                      <div>
+                        <input 
+                          type="password"
+                          placeholder="Clave (taller2026)"
+                          value={adminPassword}
+                          onChange={e => setAdminPassword(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        />
+                        {adminError && <p className="text-xs text-red-500 mt-1.5 font-medium">{adminError}</p>}
+                      </div>
+
+                      <button 
+                        type="submit"
+                        className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-md transition-colors"
+                      >
+                        Ingresar al Dashboard
+                      </button>
+                    </form>
+                  </div>
+                ) : (
+                  /* Dashboard Facilitador */
+                  <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 space-y-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+                      <div>
+                        <h2 className="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                          <Users className="w-5 h-5 text-indigo-600" />
+                          <span>Panel del Facilitador</span>
+                        </h2>
+                        <p className="text-xs text-slate-500">Métricas consolidadas del taller</p>
+                      </div>
+
+                      <div className="flex items-center space-x-2 w-full sm:w-auto">
+                        <button
+                          onClick={exportToCSV}
+                          className="flex-1 sm:flex-none px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 transition-colors shadow-sm"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Exportar CSV</span>
+                        </button>
+                        <button
+                          onClick={() => setIsAdminAuthenticated(false)}
+                          className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center space-x-1 transition-colors"
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          <span>Salir</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Métricas Agregadas */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
+                        <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Total Evaluaciones</p>
+                        <p className="text-2xl font-black text-slate-900 mt-1">{submissions.length}</p>
+                      </div>
+                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
+                        <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Promedio General</p>
+                        <p className="text-2xl font-black text-indigo-600 mt-1">
+                          {submissions.length ? (submissions.reduce((acc, s) => acc + s.score, 0) / submissions.length).toFixed(1) : '0'} / 30
+                        </p>
+                      </div>
+                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
+                        <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">% Consolidados</p>
+                        <p className="text-2xl font-black text-emerald-600 mt-1">
+                          {submissions.length ? Math.round((submissions.filter(s => s.level === 'Consolidado').length / submissions.length) * 100) : 0}%
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Buscador de Participantes */}
+                    <div className="flex items-center space-x-2">
+                      <input 
+                        type="text"
+                        placeholder="Buscar por participante, proyecto o email..."
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        className="w-full px-4 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500 outline-none"
+                      />
+                    </div>
+
+                    {/* Tabla de Registros */}
+                    <div className="overflow-x-auto rounded-xl border border-slate-200">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
+                          <tr>
+                            <th className="p-3">Participante</th>
+                            <th className="p-3">Proyecto</th>
+                            <th className="p-3 text-center">Puntaje</th>
+                            <th className="p-3">Nivel</th>
+                            <th className="p-3 text-right">Fecha</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-slate-700">
+                          {filteredSubmissions.length === 0 ? (
+                            <tr>
+                              <td colSpan="5" className="p-6 text-center text-slate-400">No se encontraron evaluaciones asociadas.</td>
+                            </tr>
+                          ) : (
+                            filteredSubmissions.map((sub) => (
+                              <tr key={sub.id} className="hover:bg-slate-50/80 transition-colors">
+                                <td className="p-3 font-medium text-slate-900">
+                                  <div>{sub.name}</div>
+                                  <div className="text-[10px] text-slate-400">{sub.email}</div>
+                                </td>
+                                <td className="p-3 font-medium text-slate-800">{sub.project}</td>
+                                <td className="p-3 text-center font-bold text-indigo-600">{sub.score} / 30</td>
+                                <td className="p-3">
+                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                    sub.level === 'Consolidado' ? 'bg-emerald-100 text-emerald-800' :
+                                    sub.level === 'En Desarrollo' ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-800'
+                                  }`}>
+                                    {sub.level}
+                                  </span>
+                                </td>
+                                <td className="p-3 text-right text-slate-400">{sub.date}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                  </div>
+                )}
+              </div>
+            )}
+
+          </main>
+
+          {/* Footer */}
+          <footer className="bg-white border-t border-slate-200 py-4 print:hidden">
+            <div className="max-w-5xl mx-auto px-4 text-center text-xs text-slate-400">
+              Diagnóstico Avanzado de Propuesta de Valor • Herramienta de Evaluación Estratégica
+            </div>
+          </footer>
+        </div>
+      );
     }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
   </script>
 </body>
 </html>
