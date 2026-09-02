@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Experiencia PyME - Evaluador de Propuesta de Valor & Zona VIP</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .rating-btn.active {
+      background-color: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- Header / Navegación principal -->
+  <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="bg-blue-600 p-2.5 rounded-xl text-white font-black text-xl shadow-md">
+          EP
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight">Experiencia PyME</h1>
+          <p class="text-xs text-slate-400">Escáner del Modelo de Negocio (BMC)</p>
+        </div>
+      </div>
+
+      <!-- Menú de Pestañas -->
+      <nav class="flex flex-wrap justify-center space-x-1 sm:space-x-2 bg-slate-800 p-1.5 rounded-xl border border-slate-700">
+        <button
+          onclick="switchTab('assessment')"
+          id="btn-tab-assessment"
+          class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all flex items-center gap-2 bg-blue-600 text-white shadow cursor-pointer"
+        >
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          <span>Diagnóstico</span>
+        </button>
+
+        <button
+          onclick="switchTab('results')"
+          id="btn-tab-results"
+          class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer"
+        >
+          <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+          <span>Mi Reporte</span>
+        </button>
+
+        <button
+          onclick="switchTab('vip')"
+          id="btn-tab-vip"
+          class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all flex items-center gap-2 text-amber-400 hover:bg-slate-700 cursor-pointer"
+        >
+          <i data-lucide="zap" class="w-4 h-4 fill-current"></i>
+          <span>Zona VIP</span>
+        </button>
+
+        <button
+          onclick="switchTab('responses')"
+          id="btn-tab-responses"
+          class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all flex items-center gap-2 text-emerald-400 hover:bg-slate-700 cursor-pointer"
+        >
+          <i data-lucide="database" class="w-4 h-4"></i>
+          <span>Planilla / Respuestas (<span id="nav-count">2</span>)</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Banner Hero -->
+  <div class="bg-gradient-to-r from-blue-900 via-slate-800 to-indigo-900 text-white py-8 px-4 border-b border-slate-700 shadow-inner">
+    <div class="max-w-4xl mx-auto text-center space-y-3">
+      <span class="inline-block bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-semibold px-3.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+        Webinar Exclusivo: Propuesta de Valor & BMC
+      </span>
+      <h2 class="text-2xl md:text-4xl font-black tracking-tight">
+        Mide el Nivel de Desarrollo de tu Propuesta de Valor
+      </h2>
+      <p class="text-slate-300 text-sm md:text-base max-w-2xl mx-auto font-normal">
+        Utiliza este escáner analítico para evaluar la viabilidad de tu proyecto antes de desplegarlo en el mercado en su totalidad.
+      </p>
+    </div>
+  </div>
+
+  <!-- Contenedor Principal de Vistas -->
+  <main class="max-w-4xl mx-auto px-4 py-8 flex-1 w-full">
+
+    <!-- PESTAÑA 1: FORMULARIO DE EVALUACIÓN -->
+    <section id="tab-assessment" class="tab-content block">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+        <form id="assessment-form" onsubmit="handleFormSubmit(event)" class="space-y-8">
+          
+          <!-- Datos del Participante -->
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2 mb-4 pb-2 border-b border-slate-100">
+              <i data-lucide="user" class="w-5 h-5 text-blue-600"></i>
+              1. Información del Participante
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Nombre Completo *</label>
+                <input
+                  type="text"
+                  id="input-nombre"
+                  required
+                  placeholder="Ej: Juan Pérez"
+                  class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Correo Electrónico *</label>
+                <input
+                  type="email"
+                  id="input-email"
+                  required
+                  placeholder="juan@ejemplo.com"
+                  class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Teléfono / WhatsApp</label>
+                <input
+                  type="tel"
+                  id="input-telefono"
+                  placeholder="+54 9 11 ..."
+                  class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Empresa / Emprendimiento</label>
+                <input
+                  type="text"
+                  id="input-empresa"
+                  placeholder="Nombre de tu proyecto"
+                  class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- CRITERIO 1 -->
+          <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+            <div class="flex items-start gap-3">
+              <span class="bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-lg text-xs uppercase">Criterio 1</span>
+              <div>
+                <h4 class="font-bold text-slate-900 text-sm md:text-base">Alivio de Dolores y Solución</h4>
+                <p class="text-xs text-slate-500">Evalúa qué tan crítico es el problema que se resuelve y la claridad de la razón de compra.</p>
+              </div>
+            </div>
+
+            <div class="space-y-4 pt-2">
+              <div>
+                <label class="block text-xs md:text-sm font-medium text-slate-800 mb-2">
+                  ¿Qué tan crítico o doloroso es el problema que tu producto/servicio resuelve? (1: Leve / 5: Crítico)
+                </label>
+                <div class="grid grid-cols-5 gap-2">
+                  <button type="button" onclick="selectRating('c1_q1', 1)" class="rating-btn c1_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">1</button>
+                  <button type="button" onclick="selectRating('c1_q1', 2)" class="rating-btn c1_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">2</button>
+                  <button type="button" onclick="selectRating('c1_q1', 3)" class="rating-btn c1_q1 active py-2 border rounded-lg text-sm font-bold bg-blue-600 text-white border-blue-600 cursor-pointer">3</button>
+                  <button type="button" onclick="selectRating('c1_q1', 4)" class="rating-btn c1_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">4</button>
+                  <button type="button" onclick="selectRating('c1_q1', 5)" class="rating-btn c1_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">5</button>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs md:text-sm font-medium text-slate-800 mb-2">
+                  ¿El cliente entiende de forma inmediata la razón principal para comprarte a ti? (1: Confuso / 5: Clarísimo)
+                </label>
+                <div class="grid grid-cols-5 gap-2">
+                  <button type="button" onclick="selectRating('c1_q2', 1)" class="rating-btn c1_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">1</button>
+                  <button type="button" onclick="selectRating('c1_q2', 2)" class="rating-btn c1_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">2</button>
+                  <button type="button" onclick="selectRating('c1_q2', 3)" class="rating-btn c1_q2 active py-2 border rounded-lg text-sm font-bold bg-blue-600 text-white border-blue-600 cursor-pointer">3</button>
+                  <button type="button" onclick="selectRating('c1_q2', 4)" class="rating-btn c1_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">4</button>
+                  <button type="button" onclick="selectRating('c1_q2', 5)" class="rating-btn c1_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">5</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CRITERIO 2 -->
+          <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+            <div class="flex items-start gap-3">
+              <span class="bg-indigo-100 text-indigo-700 font-bold px-2.5 py-1 rounded-lg text-xs uppercase">Criterio 2</span>
+              <div>
+                <h4 class="font-bold text-slate-900 text-sm md:text-base">Nivel de Diferenciación</h4>
+                <p class="text-xs text-slate-500">Evalúa la singularidad percibida en el mercado y la capacidad de defenderse frente a competidores o precios.</p>
+              </div>
+            </div>
+
+            <div class="space-y-4 pt-2">
+              <div>
+                <label class="block text-xs md:text-sm font-medium text-slate-800 mb-2">
+                  ¿Qué tan fácil es para el mercado percibir tu propuesta como única y sin sustitutos directos? (1: Genérico / 5: Único)
+                </label>
+                <div class="grid grid-cols-5 gap-2">
+                  <button type="button" onclick="selectRating('c2_q1', 1)" class="rating-btn c2_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">1</button>
+                  <button type="button" onclick="selectRating('c2_q1', 2)" class="rating-btn c2_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">2</button>
+                  <button type="button" onclick="selectRating('c2_q1', 3)" class="rating-btn c2_q1 active py-2 border rounded-lg text-sm font-bold bg-blue-600 text-white border-blue-600 cursor-pointer">3</button>
+                  <button type="button" onclick="selectRating('c2_q1', 4)" class="rating-btn c2_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">4</button>
+                  <button type="button" onclick="selectRating('c2_q1', 5)" class="rating-btn c2_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">5</button>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs md:text-sm font-medium text-slate-800 mb-2">
+                  ¿Capacidad para sostener precios sin tener que competir con rebajas? (1: Baja / 5: Muy Alta)
+                </label>
+                <div class="grid grid-cols-5 gap-2">
+                  <button type="button" onclick="selectRating('c2_q2', 1)" class="rating-btn c2_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">1</button>
+                  <button type="button" onclick="selectRating('c2_q2', 2)" class="rating-btn c2_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">2</button>
+                  <button type="button" onclick="selectRating('c2_q2', 3)" class="rating-btn c2_q2 active py-2 border rounded-lg text-sm font-bold bg-blue-600 text-white border-blue-600 cursor-pointer">3</button>
+                  <button type="button" onclick="selectRating('c2_q2', 4)" class="rating-btn c2_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">4</button>
+                  <button type="button" onclick="selectRating('c2_q2', 5)" class="rating-btn c2_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">5</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CRITERIO 3 -->
+          <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+            <div class="flex items-start gap-3">
+              <span class="bg-purple-100 text-purple-700 font-bold px-2.5 py-1 rounded-lg text-xs uppercase">Criterio 3</span>
+              <div>
+                <h4 class="font-bold text-slate-900 text-sm md:text-base">Coherencia Oferta / Segmento</h4>
+                <p class="text-xs text-slate-500">Evalúa el grado de encaje (fit) entre la propuesta entregada y las necesidades de tu cliente ideal.</p>
+              </div>
+            </div>
+
+            <div class="space-y-4 pt-2">
+              <div>
+                <label class="block text-xs md:text-sm font-medium text-slate-800 mb-2">
+                  ¿Qué tan ajustados están tus canales de venta y comunicación con los hábitos de tu cliente? (1: Poco / 5: Perfectamente)
+                </label>
+                <div class="grid grid-cols-5 gap-2">
+                  <button type="button" onclick="selectRating('c3_q1', 1)" class="rating-btn c3_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">1</button>
+                  <button type="button" onclick="selectRating('c3_q1', 2)" class="rating-btn c3_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">2</button>
+                  <button type="button" onclick="selectRating('c3_q1', 3)" class="rating-btn c3_q1 active py-2 border rounded-lg text-sm font-bold bg-blue-600 text-white border-blue-600 cursor-pointer">3</button>
+                  <button type="button" onclick="selectRating('c3_q1', 4)" class="rating-btn c3_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">4</button>
+                  <button type="button" onclick="selectRating('c3_q1', 5)" class="rating-btn c3_q1 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">5</button>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs md:text-sm font-medium text-slate-800 mb-2">
+                  ¿Cuentas con validación o clientes reales que hayan expresado alta satisfacción? (1: Ninguna / 5: Validado ampliamente)
+                </label>
+                <div class="grid grid-cols-5 gap-2">
+                  <button type="button" onclick="selectRating('c3_q2', 1)" class="rating-btn c3_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">1</button>
+                  <button type="button" onclick="selectRating('c3_q2', 2)" class="rating-btn c3_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">2</button>
+                  <button type="button" onclick="selectRating('c3_q2', 3)" class="rating-btn c3_q2 active py-2 border rounded-lg text-sm font-bold bg-blue-600 text-white border-blue-600 cursor-pointer">3</button>
+                  <button type="button" onclick="selectRating('c3_q2', 4)" class="rating-btn c3_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">4</button>
+                  <button type="button" onclick="selectRating('c3_q2', 5)" class="rating-btn c3_q2 py-2 border rounded-lg text-sm font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer">5</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botón de Envío -->
+          <button
+            type="submit"
+            id="btn-submit"
+            class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-base md:text-lg rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>Obtener Mi Diagnóstico Express</span>
+            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+          </button>
+
+          <p class="text-center text-xs text-slate-500">
+            Sus respuestas quedan registradas directamente en la planilla de datos vinculada a Experiencia PyME.
+          </p>
+        </form>
+      </div>
+    </section>
+
+    <!-- PESTAÑA 2: RESULTADOS Y DIAGNÓSTICO EXPRESS -->
+    <section id="tab-results" class="tab-content hidden space-y-6">
+      <div id="no-report-warning" class="bg-amber-50 border border-amber-200 text-amber-800 p-6 rounded-2xl text-center">
+        <i data-lucide="alert-circle" class="w-10 h-10 text-amber-600 mx-auto mb-2"></i>
+        <p class="font-bold">Aún no has completado tu diagnóstico</p>
+        <p class="text-xs text-amber-700 mt-1">Completa el formulario en la pestaña "Diagnóstico" para ver tu informe analítico aquí.</p>
+        <button onclick="switchTab('assessment')" class="mt-4 px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold text-xs cursor-pointer hover:bg-amber-700 transition">Ir al Formulario</button>
+      </div>
+
+      <div id="report-card" class="hidden space-y-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+          <div class="text-center pb-6 border-b border-slate-100">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Resultado del Escáner</span>
+            <h3 id="res-level" class="text-2xl font-black text-slate-900 mt-1">Calculando...</h3>
+            
+            <div class="mt-4 inline-flex items-center justify-center p-4 bg-slate-900 text-white rounded-2xl shadow-md">
+              <div class="text-center">
+                <span id="res-score" class="text-4xl font-extrabold text-blue-400">0</span>
+                <span class="text-slate-400 text-sm"> / 100 PTS</span>
+              </div>
+            </div>
+            <p id="res-summary" class="text-sm text-slate-600 max-w-lg mx-auto mt-4"></p>
+          </div>
+
+          <!-- Desglose por Criterio -->
+          <div class="py-6 border-b border-slate-100">
+            <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-4">Desglose de Factores Evaluados</h4>
+            <div class="space-y-4">
+              <div>
+                <div class="flex justify-between text-sm font-semibold text-slate-700 mb-1">
+                  <span>1. Alivio de Dolores y Solución</span>
+                  <span id="res-c1-val">0%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2.5">
+                  <div id="res-c1-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-sm font-semibold text-slate-700 mb-1">
+                  <span>2. Nivel de Diferenciación</span>
+                  <span id="res-c2-val">0%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2.5">
+                  <div id="res-c2-bar" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-sm font-semibold text-slate-700 mb-1">
+                  <span>3. Coherencia Oferta / Segmento</span>
+                  <span id="res-c3-val">0%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2.5">
+                  <div id="res-c3-bar" class="bg-purple-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recomendaciones Express -->
+          <div class="pt-6">
+            <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-3">Recomendaciones Mínimas Sugeridas</h4>
+            <ul id="res-recommendations" class="space-y-2">
+            </ul>
+          </div>
+        </div>
+
+        <!-- CALL TO ACTION A ZONA VIP -->
+        <div class="bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-slate-950 p-6 md:p-8 rounded-2xl shadow-xl relative overflow-hidden">
+          <div class="relative z-10 space-y-4">
+            <div class="inline-flex items-center gap-2 bg-slate-950 text-amber-400 text-xs font-bold px-3 py-1 rounded-full uppercase">
+              <i data-lucide="zap" class="w-3.5 h-3.5 fill-current"></i>
+              Recomendado para tu Proyecto
+            </div>
+            <h3 class="text-2xl font-black leading-tight">
+              ¿Quieres un Informe Completo y una Sesión de Estrategia 1 a 1?
+            </h3>
+            <p class="text-slate-900 font-medium text-sm md:text-base max-w-xl">
+              Súmate a la <strong>Zona VIP</strong> para recibir una devolución exhaustiva sobre tus puntos débiles detectados y acceso directo a nuestras mentorías con Experiencia PyME.
+            </p>
+            <div class="flex flex-col sm:flex-row items-center gap-4 pt-2">
+              <button
+                onclick="switchTab('vip')"
+                class="w-full sm:w-auto px-6 py-3 bg-slate-950 hover:bg-slate-900 text-white font-bold rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer text-sm"
+              >
+                <span>Acceder a Zona VIP por $ 4.500 ARS</span>
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+              </button>
+              <span class="text-xs font-bold text-slate-900 bg-amber-400/60 px-3 py-1.5 rounded-lg border border-amber-300">
+                Valor Regular: USD $150
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PESTAÑA 3: ZONA VIP & FORMULARIO DE INSCRIPCIÓN / PAGO -->
+    <section id="tab-vip" class="tab-content hidden space-y-8">
+      <div class="bg-white rounded-2xl shadow-sm border border-amber-200 p-6 md:p-8 relative overflow-hidden">
+        <div class="absolute top-0 right-0 bg-amber-500 text-slate-950 text-xs font-extrabold px-4 py-1.5 rounded-bl-xl uppercase tracking-wider">
+          Cupos Limitados
+        </div>
+
+        <div class="max-w-2xl space-y-3">
+          <h3 class="text-2xl font-black text-slate-900">
+            Desbloquea la ZONA VIP de Experiencia PyME
+          </h3>
+          <p class="text-slate-600 text-sm leading-relaxed">
+            Pasa de un diagnóstico automatizado a un análisis profundo realizado por consultores senior. Identificamos deficiencias específicas en tu Propuesta de Valor y trazamos la hoja de ruta para tu lanzamiento.
+          </p>
+        </div>
+
+        <!-- Anclaje de Precios -->
+        <div class="my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 opacity-70">
+            <span class="text-xs font-bold text-slate-500 uppercase">Consultoría Tradicional</span>
+            <div class="text-2xl font-bold text-slate-400 line-through">USD $150 - $300</div>
+            <p class="text-xs text-slate-500 mt-1">Costo habitual por sesión presencial/virtual.</p>
+          </div>
+
+          <div class="p-4 rounded-xl border-2 border-amber-500 bg-amber-50/50 relative">
+            <span class="text-xs font-bold text-amber-800 uppercase">Acceso Especial Webinar</span>
+            <div class="text-3xl font-black text-amber-600">$ 4.500 ARS</div>
+            <p class="text-xs text-amber-900 font-semibold mt-1">Sin barreras financieras. Solo para asistentes comprometidos.</p>
+          </div>
+        </div>
+
+        <!-- Beneficios Incluidos -->
+        <div class="space-y-3 pt-2">
+          <h4 class="font-bold text-slate-800 text-sm">¿Qué incluye tu pase a la Zona VIP?</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div class="flex items-start gap-2">
+              <i data-lucide="star" class="w-4 h-4 text-amber-500 shrink-0 mt-1 fill-amber-500"></i>
+              <span><strong>Informe Analítico Expandido:</strong> Evaluación pormenorizada de cada pilar del Canvas.</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <i data-lucide="star" class="w-4 h-4 text-amber-500 shrink-0 mt-1 fill-amber-500"></i>
+              <span><strong>Prioridad para Mentoría:</strong> Acceso a nuestros programas de acompañamiento personalizado.</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <i data-lucide="star" class="w-4 h-4 text-amber-500 shrink-0 mt-1 fill-amber-500"></i>
+              <span><strong>Plan de Acción Directo:</strong> Pasos sugeridos para eliminar cuellos de botella antes de invertir.</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <i data-lucide="star" class="w-4 h-4 text-amber-500 shrink-0 mt-1 fill-amber-500"></i>
+              <span><strong>Acceso a Plantillas Exclusivas:</strong> Modelos pre-diseñados para reestructurar la oferta.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botón de Activación Zona VIP -->
+      <div class="bg-slate-900 text-white rounded-2xl p-6 md:p-8 shadow-xl text-center space-y-4 border border-amber-500/30">
+        <div class="inline-flex items-center justify-center p-3 bg-amber-500/10 text-amber-400 rounded-full">
+          <i data-lucide="zap" class="w-8 h-8 fill-current"></i>
+        </div>
+        <h4 class="text-2xl font-black text-white">
+          ¡Activa tu Acceso a la Zona VIP!
+        </h4>
+        <p class="text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
+          Haz clic en el siguiente botón para acceder al formulario oficial de activación y reservar tu cupo para la sesión estratégica con Experiencia PyME.
+        </p>
+
+        <div class="pt-2 flex flex-col sm:flex-row justify-center gap-3">
+          <a
+            href="https://forms.gle/hCiJHWcnEeXNUkED6"
+            target="_blank"
+            rel="noopener noreferrer"
+            onclick="activateCurrentVip()"
+            class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-base shadow-lg hover:shadow-amber-500/20 transition-all duration-200 transform hover:-translate-y-0.5 cursor-pointer"
+          >
+            <span>Activar Zona VIP Ahora ($4.500 ARS)</span>
+            <i data-lucide="external-link" class="w-5 h-5"></i>
+          </a>
+        </div>
+
+        <p class="text-xs text-slate-400 pt-1">
+          Serás redirigido al formulario seguro de registro de Experiencia PyME.
+        </p>
+      </div>
+    </section>
+
+    <!-- PESTAÑA 4: BASE DE DATOS Y PLANILLA DE RESPUESTAS -->
+    <section id="tab-responses" class="tab-content hidden space-y-6">
+      <!-- Header Planilla -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <i data-lucide="database" class="w-5 h-5 text-emerald-600"></i>
+            <h3 class="text-xl font-bold text-slate-900">Planilla de Datos & Registro de Asistentes</h3>
+          </div>
+          <p class="text-xs text-slate-500 mt-1">
+            Sincronizado en tiempo real con Google Sheets / Formulario de Experiencia PyME.
+          </p>
+        </div>
+
+        <button
+          onclick="exportToCSV()"
+          class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow transition flex items-center gap-2 cursor-pointer"
+        >
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Exportar CSV</span>
+        </button>
+      </div>
+
+      <!-- Métricas Rápidas -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase">Total Encuestados</p>
+            <p id="stat-total" class="text-2xl font-black text-slate-900">0</p>
+          </div>
+          <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+            <i data-lucide="users" class="w-6 h-6"></i>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase">Promedio Diagnóstico</p>
+            <p id="stat-avg" class="text-2xl font-black text-blue-600">0 <span class="text-xs text-slate-400">/ 100</span></p>
+          </div>
+          <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+            <i data-lucide="trending-up" class="w-6 h-6"></i>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase">Convertidos a VIP</p>
+            <p id="stat-vip" class="text-2xl font-black text-amber-600">0</p>
+          </div>
+          <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+            <i data-lucide="zap" class="w-6 h-6 fill-current"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Filtros y Buscador -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div class="relative w-full sm:w-80">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+          <input
+            type="text"
+            id="search-input"
+            oninput="renderTable()"
+            placeholder="Buscar por nombre, email o empresa..."
+            class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <span class="text-xs font-medium text-slate-500">Filtrar:</span>
+          <select
+            id="filter-vip"
+            onchange="renderTable()"
+            class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 outline-none cursor-pointer"
+          >
+            <option value="all">Todos los Registros</option>
+            <option value="vip">Solo Zona VIP</option>
+            <option value="standard">Solo Estándar</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tabla de Registros -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-900 text-white font-semibold uppercase tracking-wider">
+                <th class="py-3.5 px-4"># ID</th>
+                <th class="py-3.5 px-4">Fecha</th>
+                <th class="py-3.5 px-4">Participante / Contacto</th>
+                <th class="py-3.5 px-4">Empresa</th>
+                <th class="py-3.5 px-4 text-center">C1 / C2 / C3</th>
+                <th class="py-3.5 px-4 text-center">Puntaje</th>
+                <th class="py-3.5 px-4">Diagnóstico Express</th>
+                <th class="py-3.5 px-4 text-center">Estado VIP</th>
+                <th class="py-3.5 px-4 text-center">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="table-body" class="divide-y divide-slate-100">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-200 bg-white py-6 mt-12 text-center text-xs text-slate-500">
+    <p>© 2026 Experiencia PyME - Herramienta de Evaluación de Modelos de Negocio</p>
+  </footer>
+
+  <script>
+    // Puntuaciones seleccionadas en el formulario (1 a 5)
+    const scores = {
+      c1_q1: 3,
+      c1_q2: 3,
+      c2_q1: 3,
+      c2_q2: 3,
+      c3_q1: 3,
+      c3_q2: 3
+    };
+
+    // Base de datos simulada
+    let responses = [
+      {
+        id: 1,
+        fecha: '2026-09-02 14:30',
+        nombre: 'Carlos Gómez',
+        email: 'carlos@empresa.com',
+        telefono: '+54 9 11 4567-8901',
+        empresa: 'Innovar Tech',
+        c1: 80,
+        c2: 70,
+        c3: 84,
+        puntajeTotal: 78,
+        nivel: 'Aceptable con Ajustes',
+        vipStatus: 'No'
+      },
+      {
+        id: 2,
+        fecha: '2026-09-02 15:15',
+        nombre: 'María Rodríguez',
+        email: 'maria@estudio.ar',
+        telefono: '+54 9 351 987-6543',
+        empresa: 'Estudio MR',
+        c1: 90,
+        c2: 95,
+        c3: 91,
+        puntajeTotal: 92,
+        nivel: 'Listo para Despliegue',
+        vipStatus: 'Sí ($4.500 ARS)'
+      }
+    ];
+
+    let currentResult = null;
+    let lastRegisteredEmail = '';
+
+    // Inicializar íconos y tabla
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      renderTable();
+    });
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.add('hidden');
+        tab.classList.remove('block');
+      });
+
+      const target = document.getElementById(`tab-${tabId}`);
+      if (target) {
+        target.classList.remove('hidden');
+        target.classList.add('block');
+      }
+
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.remove('bg-blue-600', 'text-white', 'shadow');
+        btn.classList.add('text-slate-300');
+      });
+
+      const activeBtn = document.getElementById(`btn-tab-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-blue-600', 'text-white', 'shadow');
+        activeBtn.classList.remove('text-slate-300');
+      }
+
+      lucide.createIcons();
+    }
+
+    function selectRating(field, value) {
+      scores[field] = value;
+
+      const buttons = document.querySelectorAll(`.rating-btn.${field}`);
+      buttons.forEach((btn, index) => {
+        const btnVal = index + 1;
+        if (btnVal === value) {
+          btn.classList.add('active', 'bg-blue-600', 'text-white', 'border-blue-600');
+          btn.classList.remove('bg-white', 'text-slate-700', 'border-slate-300');
+        } else {
+          btn.classList.remove('active', 'bg-blue-600', 'text-white', 'border-blue-600');
+          btn.classList.add('bg-white', 'text-slate-700', 'border-slate-300');
+        }
+      });
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+
+      const btnSubmit = document.getElementById('btn-submit');
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `
+        <i data-lucide="refresh-cw" class="w-5 h-5 animate-spin"></i>
+        <span>Procesando Diagnóstico...</span>
+      `;
+      lucide.createIcons();
+
+      const nombre = document.getElementById('input-nombre').value;
+      const email = document.getElementById('input-email').value;
+      const telefono = document.getElementById('input-telefono').value || 'Sin teléfono';
+      const empresa = document.getElementById('input-empresa').value || 'Particular';
+
+      lastRegisteredEmail = email;
+
+      setTimeout(() => {
+        const c1 = (scores.c1_q1 + scores.c1_q2) / 2;
+        const c2 = (scores.c2_q1 + scores.c2_q2) / 2;
+        const c3 = (scores.c3_q1 + scores.c3_q2) / 2;
+
+        const total = Math.round(((c1 + c2 + c3) / 15) * 100);
+
+        let level = '';
+        let summary = '';
+        let recommendations = [];
+
+        if (total >= 80) {
+          level = 'Óptimo para Despliegue de Mercado';
+          summary = 'Tu propuesta de valor presenta una alta alineación con el mercado y resuelve un dolor crítico con diferenciación sólida.';
+          recommendations = [
+            'Iniciar la fase de escalamiento y campañas institucionales de lanzamiento.',
+            'Optimizar embudos de conversión y retención de clientes.',
+            'Formalizar barreras defensivas frente a nuevos competidores.'
+          ];
+        } else if (total >= 55) {
+          level = 'Aceptable - Requiere Ajustes Puntuales';
+          summary = 'Existe un encaje inicial relevante, pero requiere fortalecer la diferenciación o validar más a fondo la disposición a pagar.';
+          recommendations = [
+            'Ajustar el mensaje comercial enfatizando el beneficio principal.',
+            'Realizar entrevistas breves de satisfacción con tus clientes actuales.',
+            'Revisar la estructura de costos frente al valor percibido.'
+          ];
+        } else {
+          level = 'Etapa Temprana - Necesita Rediseño de Propuesta';
+          summary = 'La propuesta actual requiere revisión en sus fundamentos antes de invertir recursos significativos en el lanzamiento masivo.';
+          recommendations = [
+            'Re-entrevistar a clientes potenciales para redefinir el dolor principal.',
+            'Simplificar la oferta eliminando características secundarias.',
+            'Identificar con precisión el nicho inicial de adopters.'
+          ];
+        }
+
+        const c1Pct = Math.round((c1 / 5) * 100);
+        const c2Pct = Math.round((c2 / 5) * 100);
+        const c3Pct = Math.round((c3 / 5) * 100);
+
+        currentResult = {
+          total,
+          level,
+          summary,
+          recommendations,
+          c1Pct,
+          c2Pct,
+          c3Pct
+        };
+
+        // Guardar nuevo registro
+        const newResponse = {
+          id: responses.length + 1,
+          fecha: new Date().toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }),
+          nombre,
+          email,
+          telefono,
+          empresa,
+          c1: c1Pct,
+          c2: c2Pct,
+          c3: c3Pct,
+          puntajeTotal: total,
+          nivel: level,
+          vipStatus: 'No'
+        };
+
+        responses.unshift(newResponse);
+
+        // Restaurar botón
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = `
+          <span>Obtener Mi Diagnóstico Express</span>
+          <i data-lucide="arrow-right" class="w-5 h-5"></i>
+        `;
+
+        renderResults();
+        renderTable();
+        switchTab('results');
+      }, 800);
+    }
+
+    function renderResults() {
+      if (!currentResult) return;
+
+      document.getElementById('no-report-warning').classList.add('hidden');
+      document.getElementById('report-card').classList.remove('hidden');
+
+      document.getElementById('res-level').innerText = currentResult.level;
+      document.getElementById('res-score').innerText = currentResult.total;
+      document.getElementById('res-summary').innerText = currentResult.summary;
+
+      document.getElementById('res-c1-val').innerText = `${currentResult.c1Pct}%`;
+      document.getElementById('res-c1-bar').style.width = `${currentResult.c1Pct}%`;
+
+      document.getElementById('res-c2-val').innerText = `${currentResult.c2Pct}%`;
+      document.getElementById('res-c2-bar').style.width = `${currentResult.c2Pct}%`;
+
+      document.getElementById('res-c3-val').innerText = `${currentResult.c3Pct}%`;
+      document.getElementById('res-c3-bar').style.width = `${currentResult.c3Pct}%`;
+
+      const listContainer = document.getElementById('res-recommendations');
+      listContainer.innerHTML = '';
+      currentResult.recommendations.forEach(rec => {
+        const li = document.createElement('li');
+        li.className = 'flex items-start gap-2 text-sm text-slate-700';
+        li.innerHTML = `
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
+          <span>${rec}</span>
+        `;
+        listContainer.appendChild(li);
+      });
+
+      lucide.createIcons();
+    }
+
+    function activateCurrentVip() {
+      if (lastRegisteredEmail) {
+        toggleVipByEmail(lastRegisteredEmail);
+      }
+    }
+
+    function toggleVipByEmail(email) {
+      responses = responses.map(r => {
+        if (r.email.toLowerCase() === email.toLowerCase()) {
+          const isVip = r.vipStatus !== 'No';
+          return {
+            ...r,
+            vipStatus: isVip ? 'No' : 'Sí ($4.500 ARS)'
+          };
+        }
+        return r;
+      });
+      renderTable();
+    }
+
+    function renderTable() {
+      const searchTerm = (document.getElementById('search-input')?.value || '').toLowerCase();
+      const vipFilter = document.getElementById('filter-vip')?.value || 'all';
+
+      const filtered = responses.filter(r => {
+        const matchesSearch = 
+          r.nombre.toLowerCase().includes(searchTerm) ||
+          r.email.toLowerCase().includes(searchTerm) ||
+          r.empresa.toLowerCase().includes(searchTerm);
+
+        if (vipFilter === 'vip') return matchesSearch && r.vipStatus !== 'No';
+        if (vipFilter === 'standard') return matchesSearch && r.vipStatus === 'No';
+        return matchesSearch;
+      });
+
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colSpan="9" class="py-8 text-center text-slate-400">
+              No se encontraron registros que coincidan con el criterio de búsqueda.
+            </td>
+          </tr>
+        `;
+      } else {
+        filtered.forEach(resp => {
+          const isVip = resp.vipStatus !== 'No';
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-50 transition';
+          tr.innerHTML = `
+            <td class="py-3 px-4 font-mono font-bold text-slate-400">#${resp.id}</td>
+            <td class="py-3 px-4 text-slate-500 whitespace-nowrap">${resp.fecha}</td>
+            <td class="py-3 px-4">
+              <div class="font-bold text-slate-900">${resp.nombre}</div>
+              <div class="text-slate-500 text-[11px]">${resp.email}</div>
+              <div class="text-slate-400 text-[10px]">${resp.telefono}</div>
+            </td>
+            <td class="py-3 px-4 text-slate-700 font-medium">${resp.empresa}</td>
+            <td class="py-3 px-4 text-center">
+              <span class="text-blue-600 font-bold">${resp.c1}%</span> / <span class="text-indigo-600 font-bold">${resp.c2}%</span> / <span class="text-purple-600 font-bold">${resp.c3}%</span>
+            </td>
+            <td class="py-3 px-4 text-center">
+              <span class="inline-block px-2.5 py-1 rounded-full bg-slate-900 text-blue-400 font-extrabold text-xs">
+                ${resp.puntajeTotal}%
+              </span>
+            </td>
+            <td class="py-3 px-4 max-w-xs">
+              <span class="text-slate-800 font-medium leading-tight block">${resp.nivel}</span>
+            </td>
+            <td class="py-3 px-4 text-center">
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-bold text-[11px] ${
+                isVip
+                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                  : 'bg-slate-100 text-slate-500'
+              }">
+                ${isVip ? '<i data-lucide="zap" class="w-3 h-3 fill-current text-amber-600"></i>' : ''}
+                ${resp.vipStatus}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-center">
+              <button 
+                onclick="toggleVipByEmail('${resp.email}')" 
+                class="px-2 py-1 text-[11px] font-semibold rounded bg-slate-100 hover:bg-amber-100 hover:text-amber-900 text-slate-600 border border-slate-200 transition cursor-pointer"
+                title="Cambiar estado VIP"
+              >
+                ${isVip ? 'Quitar VIP' : 'Hacer VIP'}
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Actualizar Estadísticas y Contadores
+      document.getElementById('nav-count').innerText = responses.length;
+      document.getElementById('stat-total').innerText = responses.length;
+
+      const avg = responses.length > 0
+        ? Math.round(responses.reduce((acc, curr) => acc + curr.puntajeTotal, 0) / responses.length)
+        : 0;
+      document.getElementById('stat-avg').innerText = `${avg} / 100`;
+
+      const vipCount = responses.filter(r => r.vipStatus !== 'No').length;
+      document.getElementById('stat-vip').innerText = vipCount;
+
+      lucide.createIcons();
+    }
+
+    function exportToCSV() {
+      const headers = ['ID,Fecha,Nombre,Email,Telefono,Empresa,C1_Alivio,C2_Diferenciacion,C3_Coherencia,Puntaje_Total,Nivel,Estado_VIP'];
+      const rows = responses.map(r => 
+        `${r.id},"${r.fecha}","${r.nombre}","${r.email}","${r.telefono}","${r.empresa}",${r.c1}%,${r.c2}%,${r.c3}%,${r.puntajeTotal}%,${r.nivel},"${r.vipStatus}"`
+      );
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers, ...rows].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `Respuestas_Experiencia_PyME_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
